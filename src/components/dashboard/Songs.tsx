@@ -92,7 +92,7 @@ export const Songs: React.FC<SongsProps> = ({ className = '', onlyCount = false 
     return <span className={className}>{isLoading ? '...' : count}</span>;
   }
 
-  // Clean SaaS Metric Card for Dashboard
+  // Metric Card for Dashboard
   return (
     <div
       className={`p-4 sm:p-5 rounded-2xl bg-[var(--bg-card)] border border-[var(--border-subtle)] hover:border-white/10 transition-colors shadow-lg ${className}`}

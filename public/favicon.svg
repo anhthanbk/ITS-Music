@@ -1,0 +1,40 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="100%" height="100%">
+  <defs>
+    <linearGradient id="itsGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#FF3366" />
+      <stop offset="50%" stop-color="#9933FF" />
+      <stop offset="100%" stop-color="#00CCFF" />
+    </linearGradient>
+    <linearGradient id="itsGlow" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#FF3366" stop-opacity="0.8" />
+      <stop offset="100%" stop-color="#00CCFF" stop-opacity="0.8" />
+    </linearGradient>
+    <filter id="blurGlow" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="16" result="blur" />
+      <feComposite in="SourceGraphic" in2="blur" operator="over" />
+    </filter>
+  </defs>
+  
+  <!-- Background Disc -->
+  <rect x="32" y="32" width="448" height="448" rx="128" fill="#0D0914" />
+  <rect x="32" y="32" width="448" height="448" rx="128" fill="none" stroke="url(#itsGrad)" stroke-width="8" stroke-opacity="0.4" />
+  
+  <!-- Equalizer Sound Wave Bars forming dynamic core -->
+  <g transform="translate(64, 64)" filter="url(#blurGlow)">
+    <!-- Bar 1 -->
+    <rect x="50" y="160" width="32" height="120" rx="16" fill="url(#itsGrad)" />
+    <!-- Bar 2 -->
+    <rect x="100" y="100" width="32" height="180" rx="16" fill="url(#itsGrad)" />
+    <!-- Bar 3 - Musical note beam connector -->
+    <rect x="150" y="60" width="32" height="220" rx="16" fill="url(#itsGrad)" />
+    <!-- Bar 4 -->
+    <rect x="200" y="120" width="32" height="160" rx="16" fill="url(#itsGrad)" />
+    <!-- Bar 5 -->
+    <rect x="250" y="80" width="32" height="200" rx="16" fill="url(#itsGrad)" />
+    <!-- Bar 6 -->
+    <rect x="300" y="140" width="32" height="140" rx="16" fill="url(#itsGrad)" />
+  </g>
+  
+  <!-- Sleek ITS Musical Note Overlay -->
+  <path d="M 230 140 Q 300 110 350 130 L 350 280 C 350 310 320 330 290 330 C 260 330 240 310 240 285 C 240 260 265 245 295 245 C 315 245 335 252 350 262 L 350 180 Q 290 160 230 185 Z" fill="#FFFFFF" opacity="0.95" />
+</svg>

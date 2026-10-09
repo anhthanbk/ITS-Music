@@ -101,7 +101,15 @@ export const SignIn: React.FC<SignInProps> = ({
       });
 
       if (error) {
-        setErrorMessage(error.message);
+        let msg = error.message;
+        if (msg.toLowerCase().includes('invalid login credentials')) {
+          msg = 'Email hoặc mật khẩu không chính xác. Vui lòng kiểm tra lại.';
+        } else if (msg.toLowerCase().includes('email not confirmed')) {
+          msg = 'Email chưa được xác thực. Vui lòng kiểm tra hộp thư email và bấm link kích hoạt tài khoản.';
+        } else if (msg.toLowerCase().includes('too many requests') || msg.toLowerCase().includes('rate limit')) {
+          msg = 'Bạn đã thử đăng nhập quá nhiều lần. Vui lòng thử lại sau vài phút.';
+        }
+        setErrorMessage(msg);
         setIsLoading(false);
         return;
       }
@@ -113,7 +121,7 @@ export const SignIn: React.FC<SignInProps> = ({
         window.history.pushState({}, '', '/');
         window.location.href = '/';
       } else {
-        setErrorMessage('No active session found. Please check your account or confirm your email.');
+        setErrorMessage('Tài khoản chưa được kích hoạt phiên làm việc. Vui lòng kiểm tra email kích hoạt hoặc đăng nhập lại.');
         setIsLoading(false);
       }
     } catch (err: any) {

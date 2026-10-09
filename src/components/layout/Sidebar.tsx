@@ -43,14 +43,12 @@ export const Sidebar: React.FC<SidebarProps> = ({
     <aside className="w-60 md:w-64 bg-[var(--bg-sidebar)] border-r border-[var(--border-subtle)] flex flex-col h-[calc(100vh-5.5rem)] shrink-0 select-none">
       {/* Brand Wordmark */}
       <div className="h-18 px-6 flex items-center gap-2.5 border-b border-[var(--border-subtle)]">
-        <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-purple-600 via-pink-500 to-amber-400 flex items-center justify-center shadow-lg shadow-purple-900/30">
-          <Headphones className="w-5 h-5 text-white" />
-        </div>
+        <img src="/logo.svg" alt="ITS Music Logo" className="w-9 h-9 rounded-xl object-contain shadow-lg shadow-purple-900/30" />
         <div>
           <span className="text-xl font-black text-white tracking-tight flex items-center gap-1">
             ITS <span className="text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-pink-400">Music</span>
           </span>
-          <p className="text-[10px] text-neutral-400 font-medium">Zing MP3 Experience</p>
+          <p className="text-[10px] text-neutral-400 font-medium">ITS Music Entertainment</p>
         </div>
       </div>
 
@@ -140,24 +138,6 @@ export const Sidebar: React.FC<SidebarProps> = ({
               </button>
             ))
           )}
-        </div>
-
-        {/* Promo VIP Card */}
-        <div className="mt-4 p-3.5 rounded-2xl bg-gradient-to-br from-purple-900/40 via-purple-800/20 to-black/40 border border-purple-500/20 text-xs">
-          <div className="flex items-center gap-1.5 text-amber-300 font-bold text-xs mb-1">
-            <Sparkles className="w-3.5 h-3.5" />
-            <span>Nghe nhạc không quảng cáo</span>
-          </div>
-          <p className="text-[11px] text-neutral-300 mb-2 leading-relaxed">
-            Âm thanh Lossless 320kbps & kho nhạc VIP độc quyền
-          </p>
-          <button
-            type="button"
-            onClick={() => setActiveTab('chart')}
-            className="w-full py-1.5 bg-amber-400 hover:bg-amber-300 text-black font-bold rounded-lg text-[11px] transition-colors cursor-pointer"
-          >
-            Nâng cấp VIP ngay
-          </button>
         </div>
       </div>
     </aside>

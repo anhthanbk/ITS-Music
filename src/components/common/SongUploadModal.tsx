@@ -12,6 +12,9 @@ import {
   Volume2,
   Sparkles,
   FileAudio,
+  FolderPlus,
+  Disc3,
+  Bot,
 } from 'lucide-react';
 import { useForm, SubmitHandler } from 'react-hook-form';
 import { useMusicStore } from '../../store/useMusicStore';
@@ -42,7 +45,7 @@ export const SongUploadModal: React.FC<SongUploadModalProps> = ({
   onOpenAuth,
 }) => {
   const { user } = useAuthStore();
-  const { uploadSong } = useMusicStore();
+  const { uploadSong, albums } = useMusicStore();
 
   const [audioFile, setAudioFile] = useState<File | null>(null);
   const [audioPreviewUrl, setAudioPreviewUrl] = useState<string | null>(null);
@@ -59,6 +62,9 @@ export const SongUploadModal: React.FC<SongUploadModalProps> = ({
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  // Album mode: picking from existing albums or creating a brand new album
+  const [isNewAlbumMode, setIsNewAlbumMode] = useState(false);
+
   const audioInputRef = useRef<HTMLInputElement | null>(null);
   const coverInputRef = useRef<HTMLInputElement | null>(null);
 
@@ -66,6 +72,7 @@ export const SongUploadModal: React.FC<SongUploadModalProps> = ({
     register,
     handleSubmit,
     setValue,
+    watch,
     reset,
     formState: { errors },
   } = useForm<UploadFormData>({
@@ -79,6 +86,12 @@ export const SongUploadModal: React.FC<SongUploadModalProps> = ({
       lyricsRaw: '',
     },
   });
+
+  const currentTitle = watch('title');
+  const currentArtist = watch('artist');
+  const currentDuration = watch('duration');
+  const currentGenre = watch('genre');
+  const currentAlbum = watch('album');
 
   if (!isOpen) return null;
 
@@ -489,15 +502,80 @@ export const SongUploadModal: React.FC<SongUploadModalProps> = ({
                 </div>
 
                 <div>
-                  <label className="block text-xs font-semibold text-neutral-300 mb-1.5">
-                    Album (Tùy chọn)
-                  </label>
-                  <input
-                    type="text"
-                    placeholder="Ví dụ: Single 2026"
-                    {...register('album')}
-                    className="w-full px-3.5 py-2.5 text-sm bg-black/40 border border-[var(--border-subtle)] focus:border-[var(--accent)] rounded-xl text-white outline-none"
-                  />
+                  <div className="flex items-center justify-between mb-1.5">
+                    <label className="block text-xs font-semibold text-neutral-300 flex items-center gap-1.5">
+                      <Disc3 className="w-3.5 h-3.5 text-purple-400" />
+                      Album
+                    </label>
+                    <button
+                      type="button"
+                      onClick={() => setIsNewAlbumMode(!isNewAlbumMode)}
+                      className="text-[11px] text-[var(--accent)] hover:underline flex items-center gap-1 cursor-pointer font-medium"
+                    >
+                      {isNewAlbumMode ? (
+                        <span>Chọn album có sẵn</span>
+                      ) : (
+                        <>
+                          <FolderPlus className="w-3 h-3" />
+                          <span>+ Tạo album mới</span>
+                        </>
+                      )}
+                    </button>
+                  </div>
+
+                  {!isNewAlbumMode && albums.length > 0 ? (
+                    <select
+                      value={currentAlbum || ''}
+                      onChange={(e) => {
+                        if (e.target.value === '__new__') {
+                          setIsNewAlbumMode(true);
+                          setValue('album', '');
+                        } else {
+                          setValue('album', e.target.value);
+                        }
+                      }}
+                      className="w-full px-3.5 py-2.5 text-sm bg-black/40 border border-[var(--border-subtle)] focus:border-[var(--accent)] rounded-xl text-white outline-none cursor-pointer"
+                    >
+                      <option value="">-- Không chọn Album (Đĩa đơn) --</option>
+                      {albums.map((alb) => (
+                        <option key={alb} value={alb}>
+                          📁 {alb}
+                        </option>
+                      ))}
+                      <option value="__new__">+ Tạo album mới trên Supabase...</option>
+                    </select>
+                  ) : (
+                    <input
+                      type="text"
+                      placeholder="Nhập tên album mới (sẽ tạo trên Supabase)..."
+                      {...register('album')}
+                      className="w-full px-3.5 py-2.5 text-sm bg-black/40 border border-[var(--border-subtle)] focus:border-[var(--accent)] rounded-xl text-white outline-none"
+                    />
+                  )}
+
+                  {/* Quick-select badges for existing albums */}
+                  {albums.length > 0 && (
+                    <div className="mt-2 flex flex-wrap items-center gap-1.5">
+                      <span className="text-[10px] text-neutral-500">Album đã tạo:</span>
+                      {albums.slice(0, 5).map((alb) => (
+                        <button
+                          key={alb}
+                          type="button"
+                          onClick={() => {
+                            setValue('album', alb);
+                            setIsNewAlbumMode(false);
+                          }}
+                          className={`text-[10px] px-2 py-0.5 rounded-lg border transition-all cursor-pointer ${
+                            currentAlbum === alb
+                              ? 'bg-[var(--accent)] text-white border-[var(--accent)] font-bold'
+                              : 'bg-white/5 hover:bg-white/10 text-neutral-300 border-white/10'
+                          }`}
+                        >
+                          {alb}
+                        </button>
+                      ))}
+                    </div>
+                  )}
                 </div>
               </div>
 
@@ -552,20 +630,24 @@ export const SongUploadModal: React.FC<SongUploadModalProps> = ({
             </div>
           </div>
 
-          {/* 3. LYRICS (OPTIONAL) */}
-          <div>
-            <div className="flex items-center justify-between mb-1.5">
+          {/* 3. LYRICS MANUAL EDITOR */}
+          <div className="space-y-2">
+            <div className="flex flex-wrap items-center justify-between gap-2">
               <label className="text-xs font-semibold text-neutral-300 flex items-center gap-1.5">
-                <Sparkles className="w-3.5 h-3.5 text-amber-400" />
-                Lời bài hát (Đồng bộ Karaoke, định dạng [mm:ss])
+                <Music2 className="w-3.5 h-3.5 text-purple-400" />
+                Lời bài hát thủ công (Định dạng LRC Karaoke)
               </label>
-              <span className="text-[10px] text-neutral-500 font-mono">Không bắt buộc</span>
+
+              <span className="text-[11px] text-neutral-400">
+                Định dạng mốc thời gian: <code className="text-purple-300">[MM:SS] Lời bài hát</code>
+              </span>
             </div>
+
             <textarea
-              rows={3}
-              placeholder="[00:00] Giai điệu bắt đầu...&#10;[00:15] Câu hát đồng bộ theo giây..."
+              rows={5}
+              placeholder="[00:00] Đoạn dạo đầu...&#10;[00:15] Nhập lời bài hát câu thứ nhất...&#10;[00:30] Nhập lời bài hát câu thứ hai...&#10;&#10;Mẹo: Nhập theo dạng [phút:giây] để hiển thị chữ Karaoke nhấp nháy đồng bộ khi phát nhạc!"
               {...register('lyricsRaw')}
-              className="w-full px-3.5 py-2 text-xs font-mono bg-black/40 border border-[var(--border-subtle)] focus:border-[var(--accent)] rounded-xl text-white outline-none resize-none"
+              className="w-full px-3.5 py-2.5 text-xs font-mono bg-black/40 border border-[var(--border-subtle)] focus:border-[var(--accent)] rounded-xl text-white outline-none resize-none leading-relaxed"
             />
           </div>
 

@@ -22,7 +22,7 @@ import {
 } from 'recharts';
 import { useMusicStore } from '../../store/useMusicStore';
 import { usePlayerStore } from '../../store/usePlayerStore';
-import { HOURLY_CHART_DATA } from '../../data/initialPlaylists';
+import { generateRealChartData } from '../../lib/chartUtils';
 import { Song } from '../../types/music';
 
 export const ChartRankView: React.FC = () => {
@@ -36,6 +36,7 @@ export const ChartRankView: React.FC = () => {
     .sort((a, b) => b.playsCount - a.playsCount);
 
   const top3 = filteredSongs.slice(0, 3);
+  const chartData = generateRealChartData(top3);
 
   const handlePlayAll = () => {
     if (filteredSongs.length > 0) {
@@ -118,7 +119,7 @@ export const ChartRankView: React.FC = () => {
 
           <div className="h-64 w-full">
             <ResponsiveContainer width="100%" height="100%">
-              <LineChart data={HOURLY_CHART_DATA} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+              <LineChart data={chartData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
                 <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" />
                 <XAxis dataKey="hour" stroke="#64748b" fontSize={11} tickLine={false} />
                 <YAxis stroke="#64748b" fontSize={11} tickLine={false} />

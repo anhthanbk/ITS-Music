@@ -1,6 +1,6 @@
 {
   "name": "ITS Music",
-  "description": "Nền tảng nghe nhạc trực tuyến phong cách Zing MP3 với #itsChart, quản lý bài hát, playlist và Supabase.",
+  "description": "Nền tảng nghe nhạc trực tuyến ITS Music Entertainment với #itsChart, quản lý bài hát, album và Supabase.",
   "requestFramePermissions": [],
   "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
 }

@@ -56,7 +56,7 @@ export const Header: React.FC<HeaderProps> = ({
   }, []);
 
   const themesList: { id: ThemeMode; name: string; color: string }[] = [
-    { id: 'zing-purple', name: 'Zing Classic Tím', color: '#9b4de0' },
+    { id: 'zing-purple', name: 'ITS Classic Tím', color: '#9b4de0' },
     { id: 'midnight-dark', name: 'Midnight Xanh Thẳm', color: '#3b82f6' },
     { id: 'emerald-dark', name: 'Emerald Xanh Ngọc', color: '#10b981' },
     { id: 'rose-dark', name: 'Rose Đỏ Rượu', color: '#f43f5e' },
@@ -177,7 +177,7 @@ export const Header: React.FC<HeaderProps> = ({
             type="button"
             onClick={() => setShowThemeMenu(!showThemeMenu)}
             className="p-2 rounded-full bg-white/5 hover:bg-white/10 text-neutral-300 hover:text-white transition-colors cursor-pointer"
-            title="Đổi chủ đề giao diện Zing MP3"
+            title="Đổi chủ đề giao diện ITS Music"
           >
             <Palette className="w-4 h-4" />
           </button>
@@ -236,8 +236,8 @@ export const Header: React.FC<HeaderProps> = ({
                 <div className="px-3 py-2 border-b border-[var(--border-subtle)] mb-1">
                   <p className="text-xs font-bold text-white truncate">{user.fullName}</p>
                   <p className="text-[11px] text-neutral-400 truncate">{user.email}</p>
-                  <span className="inline-block mt-1 text-[10px] px-1.5 py-0.2 rounded bg-amber-400/20 text-amber-300 font-bold uppercase">
-                    Thành viên VIP
+                  <span className="inline-block mt-1 text-[10px] px-1.5 py-0.2 rounded bg-purple-500/20 text-purple-300 font-bold uppercase">
+                    Thành viên ITS Music
                   </span>
                 </div>
 

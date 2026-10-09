@@ -38,6 +38,7 @@ interface PlayerState {
   setCurrentTime: (time: number) => void;
   setDuration: (duration: number) => void;
   setIsPlaying: (isPlaying: boolean) => void;
+  updateCurrentSong: (song: Song) => void;
 }
 
 export const usePlayerStore = create<PlayerState>((set, get) => ({
@@ -207,4 +208,10 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
   setCurrentTime: (currentTime) => set({ currentTime }),
   setDuration: (duration) => set({ duration }),
   setIsPlaying: (isPlaying) => set({ isPlaying }),
+  updateCurrentSong: (updatedSong) => {
+    const { queue, queueIndex, currentSong } = get();
+    const newQueue = queue.map((s) => (s.id === updatedSong.id ? updatedSong : s));
+    const newCurrentSong = currentSong?.id === updatedSong.id ? updatedSong : currentSong;
+    set({ queue: newQueue, currentSong: newCurrentSong });
+  },
 }));

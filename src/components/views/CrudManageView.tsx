@@ -138,7 +138,7 @@ export const CrudManageView: React.FC = () => {
         </div>
       </div>
 
-      {/* 2. Dashboard SaaS Overview Metrics */}
+      {/* 2. Dashboard Overview Metrics */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {/* Real Authenticated User Songs Count Card */}
         <Songs />

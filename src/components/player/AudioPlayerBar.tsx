@@ -13,10 +13,12 @@ import {
   ListMusic,
   Heart,
   Settings2,
+  Waves,
 } from 'lucide-react';
 import { usePlayerStore } from '../../store/usePlayerStore';
 import { useMusicStore } from '../../store/useMusicStore';
 import { AudioQuality } from '../../types/music';
+import { AudioVisualizer } from '../common/AudioVisualizer';
 
 export const AudioPlayerBar: React.FC = () => {
   const {
@@ -46,6 +48,7 @@ export const AudioPlayerBar: React.FC = () => {
 
   const { favorites, toggleFavorite } = useMusicStore();
   const [showQualityMenu, setShowQualityMenu] = useState(false);
+  const [showVisualizerBar, setShowVisualizerBar] = useState(false);
 
   const isFav = currentSong ? favorites.includes(currentSong.id) : false;
   const songDuration = duration || currentSong?.duration || 180;
@@ -62,49 +65,77 @@ export const AudioPlayerBar: React.FC = () => {
   };
 
   return (
-    <div className="fixed bottom-0 left-0 right-0 z-40 h-22 bg-[var(--bg-player)] border-t border-[var(--border-subtle)] px-4 md:px-6 flex items-center justify-between backdrop-blur-md">
-      {/* 1. LEFT ZONE: Current Song Info & Spinning Disc */}
-      <div className="flex items-center gap-3 w-1/4 min-w-[200px] max-w-[320px]">
-        {currentSong ? (
-          <>
-            <div className="relative group shrink-0">
-              <div
-                className={`w-13 h-13 rounded-full overflow-hidden border-2 border-white/20 shadow-lg ${
-                  isPlaying ? 'animate-spin-slow' : 'animation-paused'
-                }`}
-              >
-                <img
-                  src={currentSong.coverUrl}
-                  alt={currentSong.title}
-                  className="w-full h-full object-cover"
-                />
-              </div>
-              {/* Center vinyl hole */}
-              <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-3.5 h-3.5 rounded-full bg-[var(--bg-player)] border border-white/30" />
+    <div className="fixed bottom-0 left-0 right-0 z-40 bg-[var(--bg-player)] border-t border-[var(--border-subtle)] backdrop-blur-md">
+      {/* Expanded Equalizer Popup Dock */}
+      {showVisualizerBar && currentSong && (
+        <div className="px-6 py-3 border-b border-white/10 bg-black/40 backdrop-blur-xl animate-in slide-in-from-bottom-2 duration-200">
+          <div className="max-w-4xl mx-auto flex items-center justify-between gap-4">
+            <div className="flex items-center gap-2">
+              <Waves className="w-4 h-4 text-amber-400 animate-pulse" />
+              <span className="text-xs font-bold text-white tracking-wide">Equalizer - Tần số âm thanh</span>
             </div>
-
-            <div className="min-w-0 flex-1">
-              <h4 className="text-sm font-semibold text-white truncate hover:text-[var(--accent)] cursor-pointer transition-colors">
-                {currentSong.title}
-              </h4>
-              <p className="text-xs text-[var(--text-secondary)] truncate">
-                {currentSong.artist}
-              </p>
+            <div className="flex-1 max-w-xl mx-4">
+              <AudioVisualizer variant="bars" barCount={32} height={44} colorTheme="neon" showPeaks={true} />
             </div>
-
             <button
               type="button"
-              onClick={() => toggleFavorite(currentSong.id)}
-              className="p-1.5 text-neutral-400 hover:text-white rounded-full transition-colors cursor-pointer shrink-0"
-              title={isFav ? 'Bỏ thích' : 'Yêu thích'}
+              onClick={() => setShowVisualizerBar(false)}
+              className="text-xs text-neutral-400 hover:text-white px-2 py-1 bg-white/10 rounded-lg"
             >
-              <Heart
-                className={`w-4 h-4 ${
-                  isFav ? 'fill-pink-500 text-pink-500' : 'text-neutral-400'
-                }`}
-              />
+              Đóng
             </button>
-          </>
+          </div>
+        </div>
+      )}
+
+      <div className="h-22 px-4 md:px-6 flex items-center justify-between">
+        {/* 1. LEFT ZONE: Current Song Info & Spinning Disc */}
+        <div className="flex items-center gap-3 w-1/4 min-w-[200px] max-w-[320px]">
+          {currentSong ? (
+            <>
+              <div className="relative group shrink-0">
+                <div
+                  className={`w-13 h-13 rounded-full overflow-hidden border-2 border-white/20 shadow-lg ${
+                    isPlaying ? 'animate-spin-slow' : 'animation-paused'
+                  }`}
+                >
+                  <img
+                    src={currentSong.coverUrl}
+                    alt={currentSong.title}
+                    className="w-full h-full object-cover"
+                  />
+                </div>
+                {/* Center vinyl hole */}
+                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-3.5 h-3.5 rounded-full bg-[var(--bg-player)] border border-white/30" />
+              </div>
+
+              <div className="min-w-0 flex-1">
+                <div className="flex items-center gap-1.5">
+                  <h4 className="text-sm font-semibold text-white truncate hover:text-[var(--accent)] cursor-pointer transition-colors">
+                    {currentSong.title}
+                  </h4>
+                  {isPlaying && (
+                    <AudioVisualizer variant="mini" barCount={4} height={12} colorTheme="neon" />
+                  )}
+                </div>
+                <p className="text-xs text-[var(--text-secondary)] truncate">
+                  {currentSong.artist}
+                </p>
+              </div>
+
+              <button
+                type="button"
+                onClick={() => toggleFavorite(currentSong.id)}
+                className="p-1.5 text-neutral-400 hover:text-white rounded-full transition-colors cursor-pointer shrink-0"
+                title={isFav ? 'Bỏ thích' : 'Yêu thích'}
+              >
+                <Heart
+                  className={`w-4 h-4 ${
+                    isFav ? 'fill-pink-500 text-pink-500' : 'text-neutral-400'
+                  }`}
+                />
+              </button>
+            </>
         ) : (
           <div className="flex items-center gap-3 text-neutral-400">
             <div className="w-13 h-13 rounded-full bg-white/5 border border-white/10 flex items-center justify-center">
@@ -247,8 +278,8 @@ export const AudioPlayerBar: React.FC = () => {
                 >
                   <span className="uppercase">{q}</span>
                   {q === 'lossless' && (
-                    <span className="text-[9px] px-1 py-0.2 bg-amber-400 text-black font-black rounded">
-                      VIP
+                    <span className="text-[9px] px-1 py-0.2 bg-purple-500 text-white font-bold rounded">
+                      HQ
                     </span>
                   )}
                 </button>
@@ -256,6 +287,20 @@ export const AudioPlayerBar: React.FC = () => {
             </div>
           )}
         </div>
+
+        {/* Visualizer / Equalizer Button */}
+        <button
+          type="button"
+          onClick={() => setShowVisualizerBar(!showVisualizerBar)}
+          className={`p-2 rounded-xl transition-colors cursor-pointer ${
+            showVisualizerBar
+              ? 'bg-amber-400 text-black font-bold shadow-md'
+              : 'text-neutral-400 hover:text-white hover:bg-white/5'
+          }`}
+          title="Bật/tắt thanh sóng nhạc Equalizer"
+        >
+          <Waves className="w-4 h-4" />
+        </button>
 
         {/* Karaoke / Lyrics */}
         <button
@@ -318,6 +363,7 @@ export const AudioPlayerBar: React.FC = () => {
         </button>
       </div>
     </div>
+  </div>
   );
 };
 

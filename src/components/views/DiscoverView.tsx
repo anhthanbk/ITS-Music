@@ -23,7 +23,7 @@ import {
 } from 'recharts';
 import { useMusicStore } from '../../store/useMusicStore';
 import { usePlayerStore } from '../../store/usePlayerStore';
-import { HOURLY_CHART_DATA } from '../../data/initialPlaylists';
+import { generateRealChartData } from '../../lib/chartUtils';
 import { Song, Playlist } from '../../types/music';
 
 interface DiscoverViewProps {
@@ -329,7 +329,7 @@ export const DiscoverView: React.FC<DiscoverViewProps> = ({
               </div>
 
               <ResponsiveContainer width="100%" height="88%">
-                <LineChart data={HOURLY_CHART_DATA}>
+                <LineChart data={generateRealChartData(top3Songs)}>
                   <XAxis
                     dataKey="hour"
                     stroke="#64748b"

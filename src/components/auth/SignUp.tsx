@@ -31,17 +31,33 @@ export const SignUp: React.FC<SignUpProps> = ({ onSuccess, onSwitchToSignIn }) =
       const { data, error } = await supabase.auth.signUp({
         email: formData.email,
         password: formData.password,
+        options: {
+          emailRedirectTo: typeof window !== 'undefined' ? `${window.location.origin}/login` : undefined,
+          data: {
+            full_name: formData.email.split('@')[0],
+          },
+        },
       });
 
       if (error) {
-        setErrorMessage(error.message);
+        let msg = error.message;
+        if (msg.toLowerCase().includes('already registered')) {
+          msg = 'Email này đã được đăng ký. Vui lòng đăng nhập hoặc dùng email khác.';
+        } else if (msg.toLowerCase().includes('password')) {
+          msg = 'Mật khẩu không đáp ứng yêu cầu (tối thiểu 6 ký tự).';
+        } else if (msg.toLowerCase().includes('rate limit')) {
+          msg = 'Đã vượt quá giới hạn gửi yêu cầu. Vui lòng đợi trong giây lát và thử lại.';
+        }
+        setErrorMessage(msg);
         setIsLoading(false);
         return;
       }
 
       if (data?.user) {
-        const successMsg =
-          'Your account has been created. Please check your email and verify your address before logging in.';
+        const isEmailConfirmed = Boolean(data.user.confirmed_at || data.session);
+        const successMsg = isEmailConfirmed
+          ? 'Đăng ký tài khoản thành công! Bạn có thể đăng nhập ngay bây giờ.'
+          : 'Đăng ký thành công! Vui lòng kiểm tra hộp thư email để kích hoạt tài khoản trước khi đăng nhập.';
 
         // Store email and message in sessionStorage and query params for seamless state passing
         try {
