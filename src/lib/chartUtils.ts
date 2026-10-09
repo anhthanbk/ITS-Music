@@ -2,7 +2,8 @@ import { Song, ChartDataPoint } from '../types/music';
 
 /**
  * Generate 24-hour chart data points dynamically based on actual song playsCount.
- * Supports active song live boosts and distinct individual song curve signatures.
+ * Guarantees that songs with higher total playsCount display higher trend lines,
+ * and applies a live listening boost when a song is actively playing.
  */
 export function generateRealChartData(
   top3Songs: Song[],
@@ -21,45 +22,26 @@ export function generateRealChartData(
     hours.push(`${h.toString().padStart(2, '0')}:00`);
   }
 
-  // Base hourly listening curve factors (peaks in afternoon & evening)
-  const baseFactors = [0.25, 0.15, 0.1, 0.2, 0.45, 0.65, 0.85, 0.75, 0.88, 0.95, 1.0, 0.8];
-
-  // Helper to get a deterministic numeric seed from string
-  const getSeed = (str: string) => {
-    let hash = 0;
-    for (let i = 0; i < str.length; i++) {
-      hash = str.charCodeAt(i) + ((hash << 5) - hash);
-    }
-    return Math.abs(hash % 100);
-  };
-
-  const currentHourIdx = 11;
+  // Peak listening curve throughout the day (afternoon & evening peaks)
+  const baseFactors = [0.3, 0.2, 0.15, 0.25, 0.5, 0.7, 0.9, 0.8, 0.92, 0.98, 1.0, 0.85];
 
   return hours.map((hour, idx) => {
     const factor = baseFactors[idx % baseFactors.length];
 
-    // Calculate hourly listening count directly proportional to total plays_count
     const computeSongListens = (song?: Song) => {
       if (!song) return 0;
 
-      const plays = Number(song.playsCount) || 0;
-      const seed = getSeed(song.id || song.title);
+      const plays = Math.max(0, Number(song.playsCount) || 0);
 
-      // Scale baseline hourly value based on song's actual total playsCount
-      // Ensures higher playsCount songs display proportionally higher chart lines
-      const baseScale = Math.max(1, Math.round(plays * 0.15) + (seed % 5));
-      const variation = 1 + 0.12 * Math.sin((idx + (seed % 5)) * 0.8);
+      // Base chart values directly on total playsCount
+      const hourFactor = 0.9 + 0.1 * Math.sin((idx / 11) * Math.PI);
+      let value = Math.round(plays * hourFactor);
 
-      let listens = Math.round(baseScale * factor * variation);
-
-      // If this song is currently playing, apply real-time boost
-      if (activePlayingSongId && activePlayingSongId === song.id) {
-        if (idx === currentHourIdx || idx === currentHourIdx - 1) {
-          listens += Math.round(5 + (plays % 10));
-        }
+      if (activePlayingSongId && activePlayingSongId === song.id && idx >= 10) {
+        value += 1;
       }
 
-      return Math.max(0, listens);
+      return Math.max(0, value);
     };
 
     return {
@@ -70,4 +52,5 @@ export function generateRealChartData(
     };
   });
 }
+
 

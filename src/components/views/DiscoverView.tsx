@@ -13,17 +13,8 @@ import {
   ListMusic,
   Upload,
 } from 'lucide-react';
-import {
-  ResponsiveContainer,
-  LineChart,
-  Line,
-  XAxis,
-  YAxis,
-  Tooltip,
-} from 'recharts';
 import { useMusicStore } from '../../store/useMusicStore';
 import { usePlayerStore } from '../../store/usePlayerStore';
-import { generateRealChartData } from '../../lib/chartUtils';
 import { Song, Playlist } from '../../types/music';
 
 interface DiscoverViewProps {
@@ -99,7 +90,7 @@ export const DiscoverView: React.FC<DiscoverViewProps> = ({
     return () => clearInterval(timer);
   }, [heroBanners.length]);
 
-  const top3Songs = songs.slice(0, 3);
+  const top3Songs = [...songs].sort((a, b) => b.playsCount - a.playsCount).slice(0, 3);
 
   const filteredReleases = songs.filter((s) => {
     if (releaseFilter === 'all') return true;
@@ -233,159 +224,82 @@ export const DiscoverView: React.FC<DiscoverViewProps> = ({
             )}
           </div>
         ) : (
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-center">
-            {/* Left: Top 3 Songs List */}
-            <div className="lg:col-span-5 space-y-3">
-              {top3Songs.map((song, index) => {
-                const rank = index + 1;
-                const isCurrent = currentSong?.id === song.id;
-                const isFav = favorites.includes(song.id);
+          <div className="space-y-3">
+            {top3Songs.map((song, index) => {
+              const rank = index + 1;
+              const isCurrent = currentSong?.id === song.id;
+              const isFav = favorites.includes(song.id);
 
-                const rankBorderColor =
-                  rank === 1
-                    ? 'border-blue-500 shadow-blue-500/20'
-                    : rank === 2
-                    ? 'border-emerald-500 shadow-emerald-500/20'
-                    : 'border-rose-500 shadow-rose-500/20';
+              const rankBorderColor =
+                rank === 1
+                  ? 'border-blue-500 shadow-blue-500/20'
+                  : rank === 2
+                  ? 'border-emerald-500 shadow-emerald-500/20'
+                  : 'border-rose-500 shadow-rose-500/20';
 
-                const rankTextColor =
-                  rank === 1
-                    ? 'text-blue-400'
-                    : rank === 2
-                    ? 'text-emerald-400'
-                    : 'text-rose-400';
+              const rankTextColor =
+                rank === 1
+                  ? 'text-blue-400'
+                  : rank === 2
+                  ? 'text-emerald-400'
+                  : 'text-rose-400';
 
-                return (
-                  <div
-                    key={song.id}
-                    onClick={() => playSong(song, songs)}
-                    className={`group flex items-center gap-3 p-3 rounded-2xl bg-white/5 hover:bg-white/10 border ${rankBorderColor} shadow-md transition-all cursor-pointer`}
-                  >
-                    <span className={`text-2xl font-black font-mono w-7 text-center ${rankTextColor}`}>
-                      {rank}
-                    </span>
+              return (
+                <div
+                  key={song.id}
+                  onClick={() => playSong(song, songs)}
+                  className={`group flex items-center gap-3 p-3 rounded-2xl bg-white/5 hover:bg-white/10 border ${rankBorderColor} shadow-md transition-all cursor-pointer`}
+                >
+                  <span className={`text-2xl font-black font-mono w-7 text-center ${rankTextColor}`}>
+                    {rank}
+                  </span>
 
-                    <div className="relative w-12 h-12 rounded-xl overflow-hidden shrink-0">
-                      <img
-                        src={song.coverUrl}
-                        alt={song.title}
-                        className="w-full h-full object-cover"
-                      />
-                      <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity">
-                        {isCurrent && isPlaying ? (
-                          <Pause className="w-5 h-5 text-white fill-white" />
-                        ) : (
-                          <Play className="w-5 h-5 text-white fill-white ml-0.5" />
-                        )}
-                      </div>
-                    </div>
-
-                    <div className="flex-1 min-w-0 pr-2">
-                      <h4 className="text-[0.8rem] font-bold text-white truncate group-hover:text-[var(--accent)]">
-                        {song.title}
-                      </h4>
-                      <p className="text-[0.75rem] text-neutral-400 truncate">
-                        {song.artist}
-                      </p>
-                    </div>
-
-                    <div className="flex items-center gap-1.5 shrink-0 ml-auto">
-                      <span className="text-xs font-mono font-bold tabular-nums text-amber-300">
-                        {song.playsCount.toLocaleString('vi-VN')}
-                      </span>
-                      <button
-                        type="button"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          toggleFavorite(song.id);
-                        }}
-                        className="p-1 text-neutral-400 hover:text-white rounded-full transition-colors cursor-pointer shrink-0"
-                      >
-                        <Heart
-                          className={`w-3.5 h-3.5 ${
-                            isFav ? 'fill-pink-500 text-pink-500' : ''
-                          }`}
-                        />
-                      </button>
+                  <div className="relative w-12 h-12 rounded-xl overflow-hidden shrink-0">
+                    <img
+                      src={song.coverUrl}
+                      alt={song.title}
+                      className="w-full h-full object-cover"
+                    />
+                    <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity">
+                      {isCurrent && isPlaying ? (
+                        <Pause className="w-5 h-5 text-white fill-white" />
+                      ) : (
+                        <Play className="w-5 h-5 text-white fill-white ml-0.5" />
+                      )}
                     </div>
                   </div>
-                );
-              })}
-            </div>
 
-            {/* Right: Interactive Recharts Mini Chart */}
-            <div className="lg:col-span-7 h-56 bg-black/30 rounded-2xl p-3 border border-white/5">
-              <div className="flex items-center justify-between mb-2 px-2 text-[11px]">
-                <span className="text-neutral-400 font-mono">Biểu đồ lượt nghe hôm nay</span>
-                <div className="flex items-center gap-3 text-[10px] font-semibold">
-                  <span className="flex items-center gap-1 text-blue-400">
-                    <span className="w-2 h-2 rounded-full bg-blue-500" /> Top 1
-                  </span>
-                  <span className="flex items-center gap-1 text-emerald-400">
-                    <span className="w-2 h-2 rounded-full bg-emerald-500" /> Top 2
-                  </span>
-                  <span className="flex items-center gap-1 text-rose-400">
-                    <span className="w-2 h-2 rounded-full bg-rose-500" /> Top 3
-                  </span>
+                  <div className="flex-1 min-w-0 pr-2">
+                    <h4 className="text-[0.8rem] font-bold text-white truncate group-hover:text-[var(--accent)]">
+                      {song.title}
+                    </h4>
+                    <p className="text-[0.75rem] text-neutral-400 truncate">
+                      {song.artist}
+                    </p>
+                  </div>
+
+                  <div className="flex items-center gap-1.5 shrink-0 ml-auto">
+                    <span className="text-xs font-mono font-bold tabular-nums text-amber-300">
+                      {song.playsCount.toLocaleString('vi-VN')}
+                    </span>
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        toggleFavorite(song.id);
+                      }}
+                      className="p-1 text-neutral-400 hover:text-white rounded-full transition-colors cursor-pointer shrink-0"
+                    >
+                      <Heart
+                        className={`w-3.5 h-3.5 ${
+                          isFav ? 'fill-pink-500 text-pink-500' : ''
+                        }`}
+                      />
+                    </button>
+                  </div>
                 </div>
-              </div>
-
-              <ResponsiveContainer width="100%" height="88%">
-                <LineChart data={generateRealChartData(top3Songs, isPlaying ? currentSong?.id : undefined)}>
-                  <XAxis
-                    dataKey="hour"
-                    stroke="#64748b"
-                    fontSize={10}
-                    tickLine={false}
-                    axisLine={false}
-                  />
-                  <YAxis hide domain={[0, 'auto']} />
-                  <Tooltip
-                    contentStyle={{
-                      backgroundColor: '#1f162b',
-                      borderColor: 'rgba(255,255,255,0.1)',
-                      borderRadius: '0.75rem',
-                      fontSize: '11px',
-                      color: '#fff',
-                    }}
-                    itemStyle={{ padding: 0 }}
-                  />
-                  <Line
-                    type="monotone"
-                    dataKey="song1Listens"
-                    name={top3Songs[0]?.title || 'Top 1'}
-                    stroke="#3b82f6"
-                    strokeWidth={2.5}
-                    dot={false}
-                    activeDot={{ r: 5 }}
-                    isAnimationActive={true}
-                    animationDuration={800}
-                  />
-                  <Line
-                    type="monotone"
-                    dataKey="song2Listens"
-                    name={top3Songs[1]?.title || 'Top 2'}
-                    stroke="#10b981"
-                    strokeWidth={2}
-                    dot={false}
-                    activeDot={{ r: 4 }}
-                    isAnimationActive={true}
-                    animationDuration={800}
-                  />
-                  <Line
-                    type="monotone"
-                    dataKey="song3Listens"
-                    name={top3Songs[2]?.title || 'Top 3'}
-                    stroke="#f43f5e"
-                    strokeWidth={2}
-                    dot={false}
-                    activeDot={{ r: 4 }}
-                    isAnimationActive={true}
-                    animationDuration={800}
-                  />
-                </LineChart>
-              </ResponsiveContainer>
-            </div>
+              );
+            })}
           </div>
         )}
       </section>

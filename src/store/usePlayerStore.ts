@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import { Song, RepeatMode, AudioQuality } from '../types/music';
+import { useMusicStore } from './useMusicStore';
 
 interface PlayerState {
   currentSong: Song | null;
@@ -73,6 +74,12 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
       queueIndex: index,
       currentTime: 0,
     });
+
+    try {
+      useMusicStore.getState().recordPlay(song.id);
+    } catch {
+      // ignore
+    }
   },
 
   playPlaylist: (songs, startIndex = 0) => {
@@ -85,6 +92,14 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
       isPlaying: true,
       currentTime: 0,
     });
+
+    if (songToPlay) {
+      try {
+        useMusicStore.getState().recordPlay(songToPlay.id);
+      } catch {
+        // ignore
+      }
+    }
   },
 
   togglePlay: () => {

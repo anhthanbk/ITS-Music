@@ -80,41 +80,27 @@ export const GenresView: React.FC<GenresViewProps> = ({ onOpenAddToPlaylist }) =
         })}
       </div>
 
-      {/* 3. Filter Bar (Region & Sort Options) */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-4 rounded-2xl bg-white/5 border border-white/5">
-        <div className="flex items-center gap-2">
-          <Filter className="w-4 h-4 text-neutral-400 shrink-0" />
-          <div className="flex items-center gap-1">
-            {(
-              [
-                { id: 'all', label: 'Tất cả khu vực' },
-                { id: 'vpop', label: 'Việt Nam' },
-                { id: 'usuk', label: 'US-UK' },
-                { id: 'kpop', label: 'K-Pop' },
-              ] as const
-            ).map((r) => (
-              <button
-                key={r.id}
-                type="button"
-                onClick={() => setSelectedRegion(r.id)}
-                className={`px-3 py-1 text-xs font-semibold rounded-lg transition-colors cursor-pointer ${
-                  selectedRegion === r.id
-                    ? 'bg-[var(--accent)] text-white'
-                    : 'text-neutral-400 hover:text-white'
-                }`}
-              >
-                {r.label}
-              </button>
-            ))}
-          </div>
+      {/* 3. Filter Bar (2 Dropdown Selects on 1 Row) */}
+      <div className="flex items-center gap-2 sm:gap-3 p-3 rounded-2xl bg-white/5 border border-white/5">
+        <div className="flex items-center gap-1.5 flex-1 min-w-0">
+          <Filter className="w-4 h-4 text-neutral-400 shrink-0 hidden xs:block" />
+          <select
+            value={selectedRegion}
+            onChange={(e) => setSelectedRegion(e.target.value as 'all' | 'vpop' | 'usuk' | 'kpop')}
+            className="w-full px-3 py-2 text-xs font-semibold bg-black/40 border border-white/10 rounded-xl text-white outline-none cursor-pointer focus:border-[var(--accent)] truncate"
+          >
+            <option value="all">Tất cả khu vực</option>
+            <option value="vpop">Việt Nam</option>
+            <option value="usuk">US-UK</option>
+            <option value="kpop">K-Pop</option>
+          </select>
         </div>
 
-        <div className="flex items-center gap-2 text-xs">
-          <span className="text-neutral-400">Sắp xếp:</span>
+        <div className="flex items-center gap-1.5 flex-1 min-w-0">
           <select
             value={sortBy}
             onChange={(e) => setSortBy(e.target.value as 'popular' | 'newest' | 'title')}
-            className="px-3 py-1.5 text-xs bg-black/40 border border-white/10 rounded-xl text-white outline-none cursor-pointer"
+            className="w-full px-3 py-2 text-xs font-semibold bg-black/40 border border-white/10 rounded-xl text-white outline-none cursor-pointer focus:border-[var(--accent)] truncate"
           >
             <option value="popular">Lượt nghe nhiều nhất</option>
             <option value="newest">Mới cập nhật</option>

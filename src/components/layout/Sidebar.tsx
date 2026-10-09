@@ -5,7 +5,6 @@ import {
   Database,
   Radio,
   PlusCircle,
-  Upload,
 } from 'lucide-react';
 import { ActiveTab, Playlist } from '../../types/music';
 import { useMusicStore } from '../../store/useMusicStore';
@@ -74,20 +73,6 @@ export const Sidebar: React.FC<SidebarProps> = ({
           );
         })}
       </div>
-
-      {/* Quick Upload Song Action */}
-      {onOpenUploadSong && (
-        <div className="px-3 pb-1">
-          <button
-            type="button"
-            onClick={onOpenUploadSong}
-            className="w-full flex items-center justify-center gap-2 py-2 px-3 rounded-xl text-xs font-semibold text-white bg-gradient-to-r from-purple-600 to-pink-600 hover:opacity-90 shadow-md shadow-purple-900/30 transition-all cursor-pointer"
-          >
-            <Upload className="w-3.5 h-3.5" />
-            <span>Tải bài hát lên</span>
-          </button>
-        </div>
-      )}
 
       <div className="mx-4 my-2 border-t border-[var(--border-subtle)]" />
 

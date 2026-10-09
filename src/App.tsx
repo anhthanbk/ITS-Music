@@ -33,11 +33,12 @@ import { AuthModal } from './components/common/AuthModal';
 import { PlaylistEditModal } from './components/common/PlaylistEditModal';
 import { AddToPlaylistModal } from './components/common/AddToPlaylistModal';
 import { SongUploadModal } from './components/common/SongUploadModal';
+import { SongEditModal } from './components/common/SongEditModal';
 
 export default function App() {
   const { theme } = useThemeStore();
   const { checkSession } = useAuthStore();
-  const { loadData, createPlaylist, updatePlaylist } = useMusicStore();
+  const { loadData, createPlaylist, updatePlaylist, updateSong } = useMusicStore();
 
   const [activeTab, setActiveTab] = useState<ActiveTab>('chart');
   const [tabHistory, setTabHistory] = useState<ActiveTab[]>(['chart']);
@@ -48,6 +49,7 @@ export default function App() {
   const [isCreatePlaylistOpen, setIsCreatePlaylistOpen] = useState(false);
   const [playlistToEdit, setPlaylistToEdit] = useState<Playlist | null>(null);
   const [isUploadSongOpen, setIsUploadSongOpen] = useState(false);
+  const [songToEdit, setSongToEdit] = useState<Song | null>(null);
   const [selectedPlaylist, setSelectedPlaylist] = useState<Playlist | null>(null);
   const [addToPlaylistSong, setAddToPlaylistSong] = useState<Song | null>(null);
 
@@ -139,6 +141,13 @@ export default function App() {
     }
   };
 
+  const handleSaveEditSong = async (songData: Omit<Song, 'id' | 'createdAt' | 'playsCount'>) => {
+    if (songToEdit) {
+      await updateSong(songToEdit.id, songData);
+      setSongToEdit(null);
+    }
+  };
+
   const handleCloseAuth = () => {
     setIsAuthOpen(false);
     if (window.location.pathname === '/login') {
@@ -194,6 +203,8 @@ export default function App() {
                   }}
                   onSelectPlaylist={(pl) => setSelectedPlaylist(pl)}
                   onOpenAddToPlaylist={(song) => setAddToPlaylistSong(song)}
+                  onOpenEditSong={(song) => setSongToEdit(song)}
+                  onOpenUploadSong={() => setIsUploadSongOpen(true)}
                 />
               </ProtectedRoute>
             )}
@@ -261,6 +272,14 @@ export default function App() {
           setIsUploadSongOpen(false);
           setIsAuthOpen(true);
         }}
+      />
+
+      {/* Admin Edit Song Modal */}
+      <SongEditModal
+        isOpen={Boolean(songToEdit)}
+        songToEdit={songToEdit}
+        onClose={() => setSongToEdit(null)}
+        onSave={handleSaveEditSong}
       />
     </div>
   );

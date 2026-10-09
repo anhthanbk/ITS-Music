@@ -19,7 +19,6 @@ import {
 import { usePlayerStore } from '../../store/usePlayerStore';
 import { useMusicStore } from '../../store/useMusicStore';
 import { AudioQuality, Song } from '../../types/music';
-import { AudioVisualizer } from '../common/AudioVisualizer';
 
 interface AudioPlayerBarProps {
   onOpenAddToPlaylist?: (song: Song) => void;
@@ -102,14 +101,9 @@ export const AudioPlayerBar: React.FC<AudioPlayerBarProps> = ({ onOpenAddToPlayl
                 />
               </div>
               <div className="min-w-0 flex-1">
-                <div className="flex items-center gap-1.5">
-                  <h4 className="text-xs font-bold text-white truncate">
-                    {currentSong.title}
-                  </h4>
-                  {isPlaying && (
-                    <AudioVisualizer variant="mini" barCount={6} height={12} colorTheme="amber" />
-                  )}
-                </div>
+                <h4 className="text-xs font-bold text-white truncate">
+                  {currentSong.title}
+                </h4>
                 <p className="text-[10px] text-[var(--text-secondary)] truncate">
                   {currentSong.artist}
                 </p>
@@ -232,14 +226,9 @@ export const AudioPlayerBar: React.FC<AudioPlayerBarProps> = ({ onOpenAddToPlayl
               </div>
 
               <div className="min-w-0 flex-1">
-                <div className="flex items-center gap-1.5">
-                  <h4 className="text-sm font-semibold text-white truncate hover:text-[var(--accent)] cursor-pointer transition-colors">
-                    {currentSong.title}
-                  </h4>
-                  {isPlaying && (
-                    <AudioVisualizer variant="mini" barCount={8} height={14} colorTheme="neon" />
-                  )}
-                </div>
+                <h4 className="text-sm font-semibold text-white truncate hover:text-[var(--accent)] cursor-pointer transition-colors">
+                  {currentSong.title}
+                </h4>
                 <p className="text-xs text-[var(--text-secondary)] truncate">
                   {currentSong.artist}
                 </p>

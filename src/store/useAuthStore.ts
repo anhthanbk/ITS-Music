@@ -15,11 +15,70 @@ interface AuthState {
 
 const STORAGE_AUTH_USER = 'its_music_auth_user';
 
+const checkAdminStatus = async (
+  userId: string,
+  email: string,
+  userMeta?: any,
+  appMeta?: any
+): Promise<boolean> => {
+  if (!email) return false;
+  const lowerEmail = email.toLowerCase().trim();
+
+  if (
+    lowerEmail === 'anhthanbk@gmail.com' ||
+    userMeta?.role === 'admin' ||
+    appMeta?.role === 'admin' ||
+    userMeta?.is_admin === true
+  ) {
+    return true;
+  }
+
+  try {
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('role')
+      .eq('id', userId)
+      .maybeSingle();
+
+    if (profile?.role === 'admin') {
+      return true;
+    }
+
+    const { data: firstProfiles } = await supabase
+      .from('profiles')
+      .select('id, email')
+      .order('created_at', { ascending: true })
+      .limit(1);
+
+    if (firstProfiles && firstProfiles.length > 0) {
+      const first = firstProfiles[0];
+      if (first.id === userId || (first.email && first.email.toLowerCase().trim() === lowerEmail)) {
+        return true;
+      }
+      return false;
+    }
+  } catch (err) {
+    console.warn('Profiles check skipped/error:', err);
+  }
+
+  const storedFirstEmail = localStorage.getItem('its_music_first_admin_email');
+  if (!storedFirstEmail) {
+    localStorage.setItem('its_music_first_admin_email', lowerEmail);
+    return true;
+  } else if (storedFirstEmail.toLowerCase().trim() === lowerEmail) {
+    return true;
+  }
+
+  return false;
+};
+
 export const useAuthStore = create<AuthState>((set) => ({
   user: (() => {
     try {
       const saved = localStorage.getItem(STORAGE_AUTH_USER);
-      if (saved) return JSON.parse(saved);
+      if (saved) {
+        return JSON.parse(saved);
+      }
     } catch {
       // fallback
     }
@@ -35,12 +94,22 @@ export const useAuthStore = create<AuthState>((set) => ({
     try {
       const { data } = await supabase.auth.getSession();
       if (data.session?.user) {
+        const email = data.session.user.email || '';
+        const isAdmin = await checkAdminStatus(
+          data.session.user.id,
+          email,
+          data.session.user.user_metadata,
+          data.session.user.app_metadata
+        );
+
         const user: UserProfile = {
           id: data.session.user.id,
-          email: data.session.user.email || '',
-          fullName: data.session.user.user_metadata?.full_name || data.session.user.email?.split('@')[0] || 'User',
-          avatarUrl: data.session.user.user_metadata?.avatar_url || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=200&q=80',
-          role: 'user',
+          email,
+          fullName: data.session.user.user_metadata?.full_name || email.split('@')[0] || 'User',
+          avatarUrl:
+            data.session.user.user_metadata?.avatar_url ||
+            'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=200&q=80',
+          role: isAdmin ? 'admin' : 'user',
         };
         localStorage.setItem(STORAGE_AUTH_USER, JSON.stringify(user));
         set({ user, isLoading: false });
@@ -70,12 +139,20 @@ export const useAuthStore = create<AuthState>((set) => ({
         return { success: false, error: error.message };
       }
       if (data.user) {
+        const userEmail = data.user.email || email;
+        const isAdmin = await checkAdminStatus(
+          data.user.id,
+          userEmail,
+          data.user.user_metadata,
+          data.user.app_metadata
+        );
+
         const user: UserProfile = {
           id: data.user.id,
-          email: data.user.email || email,
-          fullName: data.user.user_metadata?.full_name || email.split('@')[0],
+          email: userEmail,
+          fullName: data.user.user_metadata?.full_name || userEmail.split('@')[0],
           avatarUrl: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=200&q=80',
-          role: 'user',
+          role: isAdmin ? 'admin' : 'user',
         };
         localStorage.setItem(STORAGE_AUTH_USER, JSON.stringify(user));
         set({ user, isLoading: false, error: null });
@@ -106,12 +183,20 @@ export const useAuthStore = create<AuthState>((set) => ({
         return { success: false, error: error.message };
       }
       if (data.user) {
+        const userEmail = data.user.email || email;
+        const isAdmin = await checkAdminStatus(
+          data.user.id,
+          userEmail,
+          data.user.user_metadata,
+          data.user.app_metadata
+        );
+
         const user: UserProfile = {
           id: data.user.id,
-          email: data.user.email || email,
-          fullName: fullName || email.split('@')[0],
+          email: userEmail,
+          fullName: fullName || userEmail.split('@')[0],
           avatarUrl: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=200&q=80',
-          role: 'user',
+          role: isAdmin ? 'admin' : 'user',
         };
         localStorage.setItem(STORAGE_AUTH_USER, JSON.stringify(user));
         set({ user, isLoading: false, error: null });

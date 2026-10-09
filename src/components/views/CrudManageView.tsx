@@ -46,8 +46,7 @@ export const CrudManageView: React.FC = () => {
   const filtered = songs.filter((s) => {
     const matchesSearch =
       s.title.toLowerCase().includes(search.toLowerCase()) ||
-      s.artist.toLowerCase().includes(search.toLowerCase()) ||
-      (s.album && s.album.toLowerCase().includes(search.toLowerCase()));
+      s.artist.toLowerCase().includes(search.toLowerCase());
 
     const matchesGenre = selectedGenre === 'all' || s.genre === selectedGenre;
     return matchesSearch && matchesGenre;
@@ -212,7 +211,7 @@ export const CrudManageView: React.FC = () => {
             type="text"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            placeholder="Tìm theo tên bài hát, nghệ sĩ hoặc album..."
+            placeholder="Tìm theo tên bài hát hoặc nghệ sĩ..."
             className="w-full pl-10 pr-4 py-2 text-xs md:text-sm bg-black/30 border border-white/10 rounded-xl text-white outline-none focus:border-[var(--accent)]"
           />
         </div>
@@ -307,7 +306,7 @@ export const CrudManageView: React.FC = () => {
                             {song.title}
                           </h4>
                           <p className="text-[11px] text-[var(--text-secondary)] truncate">
-                            {song.artist} {song.album ? `· ${song.album}` : ''}
+                            {song.artist}
                           </p>
                         </div>
                       </div>

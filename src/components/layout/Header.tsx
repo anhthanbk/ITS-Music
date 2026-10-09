@@ -163,21 +163,8 @@ export const Header: React.FC<HeaderProps> = ({
         </div>
       </div>
 
-      {/* 2. Right Actions: Theme, Upload, User Profile */}
+      {/* 2. Right Actions: Theme, User Profile */}
       <div className="flex items-center gap-1.5 sm:gap-3 shrink-0">
-        {/* Upload Song button */}
-        {onOpenUploadSong && (
-          <button
-            type="button"
-            onClick={onOpenUploadSong}
-            className="p-2 sm:px-3.5 sm:py-1.5 rounded-full text-xs font-semibold bg-gradient-to-r from-purple-600 to-pink-600 hover:opacity-90 text-white shadow-md shadow-purple-900/30 transition-all cursor-pointer flex items-center gap-1.5"
-            title="Tải nhạc lên Supabase Storage"
-          >
-            <Upload className="w-3.5 h-3.5" />
-            <span className="hidden sm:inline">Tải nhạc lên</span>
-          </button>
-        )}
-
         {/* Theme Picker */}
         <div className="relative">
           <button

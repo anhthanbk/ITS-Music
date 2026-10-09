@@ -20,7 +20,6 @@ import {
   Edit3,
   Save,
 } from 'lucide-react';
-import { AudioVisualizer } from '../common/AudioVisualizer';
 import { LyricLine } from '../../types/music';
 
 type ViewMode = 'karaoke' | 'scrolling';
@@ -49,7 +48,6 @@ export const KaraokeLyricsModal: React.FC = () => {
   const [viewMode, setViewMode] = useState<ViewMode>('karaoke');
   const [fontSizeClass, setFontSizeClass] = useState<'text-xl' | 'text-2xl' | 'text-3xl'>('text-2xl');
   const [isFullscreen, setIsFullscreen] = useState(false);
-  const [vizTheme, setVizTheme] = useState<'neon' | 'amber' | 'purple' | 'cyan'>('neon');
 
   // Manual Lyrics Editing State
   const [isEditingLyrics, setIsEditingLyrics] = useState(false);
@@ -466,16 +464,6 @@ export const KaraokeLyricsModal: React.FC = () => {
                 </p>
               )}
             </div>
-
-            {/* Minimalist Audio Frequency Equalizer */}
-            <div className="w-full max-w-sm sm:max-w-md mx-auto px-2 pt-2 pb-1 flex justify-center">
-              <AudioVisualizer
-                variant="mini"
-                barCount={22}
-                height={22}
-                colorTheme={vizTheme}
-              />
-            </div>
           </div>
         ) : (
           /* CASE 3: SCROLLING LYRICS MODE */
@@ -537,9 +525,9 @@ export const KaraokeLyricsModal: React.FC = () => {
 
         {/* Playback & Volume Control Buttons */}
         <div className="w-full max-w-4xl mx-auto flex items-center justify-between gap-2">
-          {/* Left: Font Size or Visualizer Theme */}
+          {/* Left: Font Size controls in Scrolling Mode */}
           <div className="flex items-center gap-1 shrink-0">
-            {viewMode === 'scrolling' ? (
+            {viewMode === 'scrolling' && (
               <div className="flex items-center gap-0.5 sm:gap-1 bg-white/5 border border-white/10 rounded-lg sm:rounded-xl p-0.5 sm:p-1">
                 <button
                   type="button"
@@ -568,22 +556,6 @@ export const KaraokeLyricsModal: React.FC = () => {
                 >
                   A+
                 </button>
-              </div>
-            ) : (
-              <div className="flex items-center gap-1 bg-white/5 border border-white/10 rounded-lg sm:rounded-xl p-0.5 sm:p-1 text-[10px]">
-                <span className="hidden md:inline text-neutral-500 pl-1 pr-0.5 font-medium">Sóng:</span>
-                {(['neon', 'amber', 'purple', 'cyan'] as const).map((t) => (
-                  <button
-                    key={t}
-                    type="button"
-                    onClick={() => setVizTheme(t)}
-                    className={`px-1.5 sm:px-2 py-0.5 rounded capitalize font-bold text-[9px] sm:text-[10px] transition-all cursor-pointer ${
-                      vizTheme === t ? 'bg-white/20 text-white shadow-sm' : 'text-neutral-400 hover:text-white'
-                    }`}
-                  >
-                    {t}
-                  </button>
-                ))}
               </div>
             )}
           </div>

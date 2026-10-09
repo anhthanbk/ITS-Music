@@ -4,23 +4,10 @@ import {
   Play,
   Pause,
   Heart,
-  Plus,
-  Sparkles,
-  Calendar,
   FolderPlus,
 } from 'lucide-react';
-import {
-  ResponsiveContainer,
-  LineChart,
-  Line,
-  XAxis,
-  YAxis,
-  Tooltip,
-  CartesianGrid,
-} from 'recharts';
 import { useMusicStore } from '../../store/useMusicStore';
 import { usePlayerStore } from '../../store/usePlayerStore';
-import { generateRealChartData } from '../../lib/chartUtils';
 import { Song } from '../../types/music';
 
 interface ChartRankViewProps {
@@ -36,9 +23,6 @@ export const ChartRankView: React.FC<ChartRankViewProps> = ({ onOpenAddToPlaylis
   const filteredSongs = songs
     .filter((s) => (selectedRegion === 'all' ? true : s.region === selectedRegion))
     .sort((a, b) => b.playsCount - a.playsCount);
-
-  const top3 = filteredSongs.slice(0, 3);
-  const chartData = generateRealChartData(top3, isPlaying ? currentSong?.id : undefined);
 
   const handlePlayAll = () => {
     if (filteredSongs.length > 0) {
@@ -91,71 +75,7 @@ export const ChartRankView: React.FC<ChartRankViewProps> = ({ onOpenAddToPlaylis
         </div>
       </div>
 
-      {/* 2. Interactive Recharts Line Graph for Top 3 (Chart Only, Low Height) */}
-      {top3.length > 0 && (
-        <div className="rounded-3xl p-3 sm:p-4 bg-gradient-to-br from-[#1a102c] via-[#23173d] to-black/80 border border-purple-500/20 shadow-2xl">
-          <div className="h-36 sm:h-40 w-full">
-            <ResponsiveContainer width="100%" height="100%">
-              <LineChart data={chartData} margin={{ top: 10, right: 10, left: -22, bottom: 0 }}>
-                <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" />
-                <XAxis dataKey="hour" stroke="#64748b" fontSize={10} tickLine={false} />
-                <YAxis stroke="#64748b" fontSize={10} tickLine={false} domain={[0, 'auto']} />
-                <Tooltip
-                  contentStyle={{
-                    backgroundColor: '#1b1227',
-                    borderColor: 'rgba(255,255,255,0.15)',
-                    borderRadius: '0.75rem',
-                    fontSize: '11px',
-                    color: '#fff',
-                  }}
-                  formatter={(value: any, name: any) => [
-                    `${Number(value).toLocaleString('vi-VN')} lượt nghe/giờ (Tổng: ${
-                      top3.find((s) => s.title === name)?.playsCount.toLocaleString('vi-VN') || value
-                    })`,
-                    name,
-                  ]}
-                  labelFormatter={(label) => `Thời gian: ${label} (GMT+7)`}
-                />
-                <Line
-                  type="monotone"
-                  dataKey="song1Listens"
-                  name={top3[0]?.title || 'Top 1'}
-                  stroke="#3b82f6"
-                  strokeWidth={2.5}
-                  dot={{ r: 2 }}
-                  activeDot={{ r: 5 }}
-                  isAnimationActive={true}
-                  animationDuration={800}
-                />
-                <Line
-                  type="monotone"
-                  dataKey="song2Listens"
-                  name={top3[1]?.title || 'Top 2'}
-                  stroke="#10b981"
-                  strokeWidth={2}
-                  dot={{ r: 2 }}
-                  activeDot={{ r: 4 }}
-                  isAnimationActive={true}
-                  animationDuration={800}
-                />
-                <Line
-                  type="monotone"
-                  dataKey="song3Listens"
-                  name={top3[2]?.title || 'Top 3'}
-                  stroke="#f43f5e"
-                  strokeWidth={2}
-                  dot={{ r: 2 }}
-                  activeDot={{ r: 4 }}
-                  isAnimationActive={true}
-                  animationDuration={800}
-                />
-              </LineChart>
-            </ResponsiveContainer>
-          </div>
-        </div>
-      )}
-
-      {/* 3. Ranked Songs List */}
+      {/* 2. Ranked Songs List */}
       {filteredSongs.length === 0 ? (
         <div className="p-12 text-center rounded-2xl bg-white/5 border border-white/5 text-neutral-400">
           <TrendingUp className="w-10 h-10 opacity-30 mx-auto mb-3" />

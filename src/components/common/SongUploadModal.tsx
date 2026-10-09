@@ -33,7 +33,6 @@ interface SongUploadModalProps {
 interface UploadFormData {
   title: string;
   artist: string;
-  album?: string;
   genre: string;
   region: 'vpop' | 'usuk' | 'kpop' | 'other';
   duration: number;
@@ -47,7 +46,7 @@ export const SongUploadModal: React.FC<SongUploadModalProps> = ({
   onOpenAuth,
 }) => {
   const { user } = useAuthStore();
-  const { uploadSong, albums, songs } = useMusicStore();
+  const { uploadSong, songs } = useMusicStore();
 
   const [audioFile, setAudioFile] = useState<File | null>(null);
   const [audioPreviewUrl, setAudioPreviewUrl] = useState<string | null>(null);
@@ -64,8 +63,7 @@ export const SongUploadModal: React.FC<SongUploadModalProps> = ({
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // Album & Genre modes: picking existing or creating brand new
-  const [isNewAlbumMode, setIsNewAlbumMode] = useState(false);
+  // Genre mode
   const [isNewGenreMode, setIsNewGenreMode] = useState(false);
 
   const PRESET_GENRES = [
@@ -102,7 +100,6 @@ export const SongUploadModal: React.FC<SongUploadModalProps> = ({
     defaultValues: {
       title: '',
       artist: '',
-      album: '',
       genre: 'V-Pop',
       region: 'vpop',
       duration: 180,
@@ -114,7 +111,6 @@ export const SongUploadModal: React.FC<SongUploadModalProps> = ({
   const currentArtist = watch('artist');
   const currentDuration = watch('duration');
   const currentGenre = watch('genre');
-  const currentAlbum = watch('album');
 
   if (!isOpen) return null;
 
@@ -233,7 +229,6 @@ export const SongUploadModal: React.FC<SongUploadModalProps> = ({
         coverFile: coverFile || undefined,
         title: data.title,
         artist: data.artist,
-        album: data.album || undefined,
         genre: data.genre,
         region: data.region,
         duration: Number(data.duration) || 180,
@@ -464,43 +459,7 @@ export const SongUploadModal: React.FC<SongUploadModalProps> = ({
               </div>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-4 gap-3">
-              <div>
-                <label className="block text-xs font-semibold text-neutral-300 mb-1 flex items-center gap-1">
-                  <Disc3 className="w-3.5 h-3.5 text-purple-400" />
-                  <span>Album</span>
-                </label>
-                {!isNewAlbumMode && albums.length > 0 ? (
-                  <select
-                    value={currentAlbum || ''}
-                    onChange={(e) => {
-                      if (e.target.value === '__new__') {
-                        setIsNewAlbumMode(true);
-                        setValue('album', '');
-                      } else {
-                        setValue('album', e.target.value);
-                      }
-                    }}
-                    className="w-full px-3 py-2 text-xs bg-black/40 border border-[var(--border-subtle)] focus:border-[var(--accent)] rounded-xl text-white outline-none cursor-pointer"
-                  >
-                    <option value="">-- Đĩa đơn (Không album) --</option>
-                    {albums.map((alb) => (
-                      <option key={alb} value={alb}>
-                        📁 {alb}
-                      </option>
-                    ))}
-                    <option value="__new__">+ Tạo album mới...</option>
-                  </select>
-                ) : (
-                  <input
-                    type="text"
-                    placeholder="Nhập tên album..."
-                    {...register('album')}
-                    className="w-full px-3 py-2 text-xs bg-black/40 border border-[var(--border-subtle)] focus:border-[var(--accent)] rounded-xl text-white outline-none"
-                  />
-                )}
-              </div>
-
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
               <div>
                 <label className="block text-xs font-semibold text-neutral-300 mb-1 flex items-center gap-1">
                   <Tag className="w-3.5 h-3.5 text-pink-400" />

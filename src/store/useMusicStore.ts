@@ -19,7 +19,6 @@ if (typeof window !== 'undefined') {
 interface MusicState {
   songs: Song[];
   playlists: Playlist[];
-  albums: string[];
   favorites: string[];
   searchQuery: string;
   activeCategory: string;
@@ -35,7 +34,6 @@ interface MusicState {
 
   // Supabase CRUD - Songs
   loadData: () => Promise<void>;
-  createAlbum: (title: string, artist?: string, coverUrl?: string) => Promise<string>;
   uploadSong: (params: {
     audioFile: File;
     coverFile?: File;
@@ -69,7 +67,6 @@ interface MusicState {
 export const useMusicStore = create<MusicState>((set, get) => ({
   songs: [],
   playlists: [],
-  albums: [],
   favorites: [],
 
   searchQuery: '',
@@ -93,17 +90,11 @@ export const useMusicStore = create<MusicState>((set, get) => ({
         .select('*')
         .order('created_at', { ascending: false });
 
-      const collectedAlbums = new Set<string>();
-
       if (!errSongs) {
         if (dbSongs && dbSongs.length > 0) {
           // Resolve signed URLs for private files in parallel
           const mappedSongs: Song[] = await Promise.all(
             dbSongs.map(async (s) => {
-              if (s.album && typeof s.album === 'string' && s.album.trim()) {
-                collectedAlbums.add(s.album.trim());
-              }
-
               const [resolvedAudio, resolvedCover] = await Promise.all([
                 getSignedFileUrl(s.audio_url),
                 getSignedFileUrl(s.cover_url),
@@ -136,25 +127,7 @@ export const useMusicStore = create<MusicState>((set, get) => ({
         console.warn('Supabase fetch songs warning/error:', errSongs);
       }
 
-      // 1.2 Check if an 'albums' table exists in Supabase
-      try {
-        const { data: dbAlbums } = await supabase.from('albums').select('title');
-        if (dbAlbums && Array.isArray(dbAlbums)) {
-          dbAlbums.forEach((a: any) => {
-            if (a.title && typeof a.title === 'string' && a.title.trim()) {
-              collectedAlbums.add(a.title.trim());
-            }
-          });
-        }
-      } catch {
-        // Table might not exist yet, that's fine
-      }
-
-      // Set synchronized albums list
-      const sortedAlbums = Array.from(collectedAlbums).sort((a, b) => a.localeCompare(b));
-      set({ albums: sortedAlbums });
-
-      // 1.3 Load Playlists from Supabase
+      // 1.2 Load Playlists from Supabase
       const { data: dbPlaylists, error: errPl } = await supabase
         .from('playlists')
         .select('*')
@@ -207,44 +180,15 @@ export const useMusicStore = create<MusicState>((set, get) => ({
     }
   },
 
-  // METHOD TO CREATE / REGISTER ALBUM IN SUPABASE
-  createAlbum: async (title: string, artist?: string, coverUrl?: string) => {
-    const trimmedTitle = title.trim();
-    if (!trimmedTitle) return '';
-
-    const currentAlbums = get().albums;
-    if (!currentAlbums.includes(trimmedTitle)) {
-      set({ albums: [...currentAlbums, trimmedTitle].sort((a, b) => a.localeCompare(b)) });
-    }
-
-    // Try saving directly to Supabase albums table if present
-    try {
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
-
-      await supabase.from('albums').insert({
-        title: trimmedTitle,
-        artist: artist || null,
-        cover_url: coverUrl || null,
-        user_id: user?.id || null,
-      });
-    } catch {
-      // Ignored if table 'albums' does not exist in schema cache
-    }
-
-    return trimmedTitle;
-  },
-
-  // 2. DEDICATED METHOD TO UPLOAD SONGS (AUDIO + COVER + METADATA TO SUPABASE)
+  // DEDICATED METHOD TO UPLOAD SONGS (AUDIO + COVER + METADATA TO SUPABASE)
   uploadSong: async (params) => {
-    // 2.1 Upload audio file to Supabase Storage bucket 'app-files'
+    // Upload audio file to Supabase Storage bucket 'app-files'
     const { signedUrl: audioUrl } = await uploadFileToStorage({
       file: params.audioFile,
       featureName: 'songs',
     });
 
-    // 2.2 Upload cover image if provided, or use elegant default
+    // Upload cover image if provided, or use elegant default
     let coverUrl =
       'https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?auto=format&fit=crop&w=600&q=80';
     if (params.coverFile) {
@@ -255,16 +199,10 @@ export const useMusicStore = create<MusicState>((set, get) => ({
       coverUrl = uploadedCover;
     }
 
-    // 2.3 If album is provided, ensure it is created on Supabase and added to options
-    if (params.album && params.album.trim()) {
-      await get().createAlbum(params.album.trim(), params.artist, coverUrl);
-    }
-
-    // 2.4 Insert new song record into Supabase database
+    // Insert new song record into Supabase database
     return await get().addSong({
       title: params.title,
       artist: params.artist,
-      album: params.album?.trim() || undefined,
       genre: params.genre || 'V-Pop',
       region: params.region || 'vpop',
       duration: params.duration || 180,
@@ -297,7 +235,6 @@ export const useMusicStore = create<MusicState>((set, get) => ({
         user_id: currentUserId,
         title: data.title,
         artist: data.artist,
-        album: data.album || '',
         genre: data.genre || 'V-Pop',
         region: data.region || 'vpop',
         duration: data.duration || 180,
@@ -335,13 +272,6 @@ export const useMusicStore = create<MusicState>((set, get) => ({
       rankChange: 'same',
     };
 
-    if (data.album && data.album.trim()) {
-      const current = get().albums;
-      if (!current.includes(data.album.trim())) {
-        set({ albums: [...current, data.album.trim()].sort((a, b) => a.localeCompare(b)) });
-      }
-    }
-
     const updated = [newSong, ...get().songs];
     set({ songs: updated });
     return newSong;
@@ -349,18 +279,10 @@ export const useMusicStore = create<MusicState>((set, get) => ({
 
   // 3. UPDATING SONG IN SUPABASE
   updateSong: async (id, data) => {
-    if (data.album && data.album.trim()) {
-      const current = get().albums;
-      if (!current.includes(data.album.trim())) {
-        set({ albums: [...current, data.album.trim()].sort((a, b) => a.localeCompare(b)) });
-      }
-    }
-
     const payload: Record<string, unknown> = {};
     if (data.title !== undefined) payload.title = data.title;
     if (data.artist !== undefined) payload.artist = data.artist;
     if (data.genre !== undefined) payload.genre = data.genre;
-    if (data.album !== undefined) payload.album = data.album;
     if (data.audioUrl !== undefined) payload.audio_url = data.audioUrl;
     if (data.coverUrl !== undefined) payload.cover_url = data.coverUrl;
     if (data.duration !== undefined) payload.duration = data.duration;
