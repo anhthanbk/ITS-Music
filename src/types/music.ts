@@ -50,5 +50,5 @@ export interface UserProfile {
 
 export type AudioQuality = '128kbps' | '320kbps' | 'lossless';
 export type RepeatMode = 'off' | 'all' | 'one';
-export type ActiveTab = 'discover' | 'chart' | 'library' | 'crud' | 'genres';
+export type ActiveTab = 'chart' | 'library' | 'genres';
 export type ThemeMode = 'zing-purple' | 'midnight-dark' | 'emerald-dark' | 'rose-dark';

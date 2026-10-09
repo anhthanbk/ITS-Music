@@ -72,10 +72,17 @@ export const Header: React.FC<HeaderProps> = ({
     : [];
 
   return (
-    <header className="h-18 px-6 bg-[var(--bg-main)]/80 backdrop-blur-md border-b border-[var(--border-subtle)] flex items-center justify-between sticky top-0 z-30">
-      {/* 1. Left: Navigation arrows & Search bar */}
-      <div className="flex items-center gap-4 flex-1 max-w-xl">
-        <div className="hidden sm:flex items-center gap-1.5 text-neutral-400">
+    <header className="h-14 md:h-18 px-3 sm:px-6 bg-[var(--bg-main)]/90 backdrop-blur-md border-b border-[var(--border-subtle)] flex items-center justify-between sticky top-0 z-30 gap-2 sm:gap-4">
+      {/* 1. Left: Mobile Brand Logo & Navigation arrows & Search bar */}
+      <div className="flex items-center gap-2 sm:gap-4 flex-1 max-w-xl min-w-0">
+        {/* Mobile Brand Mark */}
+        <div className="flex items-center gap-1.5 shrink-0 md:hidden">
+          <img src="/logo.svg" alt="ITS Music" className="w-6 h-6 sm:w-7 sm:h-7" />
+          <span className="text-xs font-black tracking-tight text-white hidden xs:inline">ITS</span>
+        </div>
+
+        {/* Navigation arrows (Desktop/Tablet) */}
+        <div className="hidden sm:flex items-center gap-1.5 text-neutral-400 shrink-0">
           <button
             type="button"
             onClick={onBack}
@@ -95,9 +102,9 @@ export const Header: React.FC<HeaderProps> = ({
         </div>
 
         {/* Live Search Input */}
-        <div ref={searchRef} className="relative flex-1 max-w-md">
-          <div className="relative">
-            <Search className="w-4 h-4 text-neutral-400 absolute left-3.5 top-3" />
+        <div ref={searchRef} className="relative flex-1 min-w-0 max-w-md">
+          <div className="relative flex items-center">
+            <Search className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-neutral-400 absolute left-2.5 sm:left-3.5 pointer-events-none" />
             <input
               type="text"
               value={searchQuery}
@@ -106,14 +113,14 @@ export const Header: React.FC<HeaderProps> = ({
                 setShowSearchDropdown(true);
               }}
               onFocus={() => setShowSearchDropdown(true)}
-              placeholder="Tìm kiếm bài hát, nghệ sĩ, lời bài hát..."
-              className="w-full pl-10 pr-4 py-2 text-xs md:text-sm bg-white/5 focus:bg-white/10 border border-white/10 focus:border-[var(--accent)] rounded-full text-white placeholder-neutral-400 outline-none transition-colors"
+              placeholder="Tìm bài hát, ca sĩ..."
+              className="w-full pl-8 sm:pl-10 pr-3 sm:pr-4 py-1.5 sm:py-2 text-xs md:text-sm bg-white/5 focus:bg-white/10 border border-white/10 focus:border-[var(--accent)] rounded-full text-white placeholder-neutral-400 outline-none transition-colors"
             />
           </div>
 
           {/* Autocomplete Dropdown */}
           {showSearchDropdown && searchQuery.trim() && (
-            <div className="absolute top-12 left-0 right-0 rounded-2xl bg-[var(--bg-card)] border border-[var(--border-subtle)] p-2 shadow-2xl z-50 max-h-80 overflow-y-auto animate-in fade-in duration-100">
+            <div className="absolute top-11 sm:top-12 left-0 right-0 rounded-2xl bg-[var(--bg-card)] border border-[var(--border-subtle)] p-2 shadow-2xl z-50 max-h-80 overflow-y-auto animate-in fade-in duration-100">
               <div className="px-3 py-1.5 text-[11px] font-bold text-neutral-400">
                 GỢI Ý TÌM KIẾM ({searchResults.length})
               </div>
@@ -156,15 +163,15 @@ export const Header: React.FC<HeaderProps> = ({
         </div>
       </div>
 
-      {/* 2. Right Actions: Theme, Supabase Status, User Profile */}
-      <div className="flex items-center gap-2 sm:gap-3">
+      {/* 2. Right Actions: Theme, Upload, User Profile */}
+      <div className="flex items-center gap-1.5 sm:gap-3 shrink-0">
         {/* Upload Song button */}
         {onOpenUploadSong && (
           <button
             type="button"
             onClick={onOpenUploadSong}
-            className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-semibold bg-gradient-to-r from-purple-600 to-pink-600 hover:opacity-90 text-white shadow-md shadow-purple-900/30 transition-all cursor-pointer"
-            title="Tải bài hát lên Supabase Storage"
+            className="p-2 sm:px-3.5 sm:py-1.5 rounded-full text-xs font-semibold bg-gradient-to-r from-purple-600 to-pink-600 hover:opacity-90 text-white shadow-md shadow-purple-900/30 transition-all cursor-pointer flex items-center gap-1.5"
+            title="Tải nhạc lên Supabase Storage"
           >
             <Upload className="w-3.5 h-3.5" />
             <span className="hidden sm:inline">Tải nhạc lên</span>

@@ -1,14 +1,10 @@
 import React from 'react';
 import {
-  Compass,
   TrendingUp,
   FolderHeart,
   Database,
   Radio,
   PlusCircle,
-  Headphones,
-  Sparkles,
-  Music4,
   Upload,
 } from 'lucide-react';
 import { ActiveTab, Playlist } from '../../types/music';
@@ -32,11 +28,9 @@ export const Sidebar: React.FC<SidebarProps> = ({
   const { playlists } = useMusicStore();
 
   const navItems: { id: ActiveTab; label: string; icon: React.ReactNode; isNew?: boolean }[] = [
-    { id: 'discover', label: 'Khám phá', icon: <Compass className="w-5 h-5" /> },
-    { id: 'chart', label: '#itsChart', icon: <TrendingUp className="w-5 h-5 text-amber-400" />, isNew: true },
+    { id: 'chart', label: 'ITS Entertainment', icon: <TrendingUp className="w-5 h-5 text-amber-400" />, isNew: true },
     { id: 'genres', label: 'Thể loại & Chủ đề', icon: <Radio className="w-5 h-5" /> },
     { id: 'library', label: 'Thư viện cá nhân', icon: <FolderHeart className="w-5 h-5" /> },
-    { id: 'crud', label: 'Quản lý Dữ liệu (CRUD)', icon: <Database className="w-5 h-5 text-emerald-400" /> },
   ];
 
   return (

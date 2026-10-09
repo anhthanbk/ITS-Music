@@ -14,6 +14,8 @@ import {
   FolderPlus,
   Bot,
   CheckCircle2,
+  Tag,
+  Plus,
 } from 'lucide-react';
 import { uploadFileToStorage } from '../../lib/storage';
 import { useMusicStore } from '../../store/useMusicStore';
@@ -43,12 +45,33 @@ export const SongEditModal: React.FC<SongEditModalProps> = ({
   onClose,
   onSave,
 }) => {
-  const { albums } = useMusicStore();
+  const { albums, songs } = useMusicStore();
   const [isUploadingAudio, setIsUploadingAudio] = useState(false);
   const [isUploadingCover, setIsUploadingCover] = useState(false);
   const [storageError, setStorageError] = useState<string | null>(null);
 
   const [isNewAlbumMode, setIsNewAlbumMode] = useState(false);
+  const [isNewGenreMode, setIsNewGenreMode] = useState(false);
+
+  const PRESET_GENRES = [
+    'V-Pop',
+    'Ballad',
+    'Lofi & Chill',
+    'EDM / Dance',
+    'Remix',
+    'Acoustic',
+    'Indie',
+    'Rap / Hip-Hop',
+    'Pop',
+    'Rock',
+    'R&B / Soul',
+    'Bolero',
+    'Jazz',
+  ];
+
+  const allGenres = Array.from(
+    new Set([...PRESET_GENRES, ...songs.map((s) => s.genre).filter(Boolean)])
+  );
 
   const {
     register,
@@ -265,25 +288,11 @@ export const SongEditModal: React.FC<SongEditModalProps> = ({
 
           {/* ALBUM SELECTOR / CREATION */}
           <div>
-            <div className="flex items-center justify-between mb-1.5">
+            <div className="flex items-center justify-between mb-1">
               <label className="block text-xs font-semibold text-neutral-300 flex items-center gap-1.5">
                 <Disc3 className="w-3.5 h-3.5 text-purple-400" />
                 Album (Tùy chọn)
               </label>
-              <button
-                type="button"
-                onClick={() => setIsNewAlbumMode(!isNewAlbumMode)}
-                className="text-[11px] text-[var(--accent)] hover:underline flex items-center gap-1 cursor-pointer font-medium"
-              >
-                {isNewAlbumMode ? (
-                  <span>Chọn album có sẵn</span>
-                ) : (
-                  <>
-                    <FolderPlus className="w-3 h-3" />
-                    <span>+ Tạo album mới</span>
-                  </>
-                )}
-              </button>
             </div>
 
             {!isNewAlbumMode && albums.length > 0 ? (
@@ -297,67 +306,61 @@ export const SongEditModal: React.FC<SongEditModalProps> = ({
                     setValue('album', e.target.value);
                   }
                 }}
-                className="w-full px-3.5 py-2.5 text-sm bg-black/40 border border-[var(--border-subtle)] focus:border-[var(--accent)] rounded-xl text-white outline-none cursor-pointer"
+                className="w-full px-3 py-2 text-xs bg-black/40 border border-[var(--border-subtle)] focus:border-[var(--accent)] rounded-xl text-white outline-none cursor-pointer"
               >
-                <option value="">-- Không chọn Album (Đĩa đơn) --</option>
+                <option value="">-- Đĩa đơn (Không album) --</option>
                 {albums.map((alb) => (
                   <option key={alb} value={alb}>
                     📁 {alb}
                   </option>
                 ))}
-                <option value="__new__">+ Tạo album mới trên Supabase...</option>
+                <option value="__new__">+ Tạo album mới...</option>
               </select>
             ) : (
               <input
                 type="text"
-                placeholder="Nhập tên album mới (sẽ tạo trên Supabase)..."
+                placeholder="Nhập tên album..."
                 {...register('album')}
-                className="w-full px-3.5 py-2.5 text-sm bg-black/40 border border-[var(--border-subtle)] focus:border-[var(--accent)] rounded-xl text-white outline-none"
+                className="w-full px-3 py-2 text-xs bg-black/40 border border-[var(--border-subtle)] focus:border-[var(--accent)] rounded-xl text-white outline-none"
               />
-            )}
-
-            {albums.length > 0 && (
-              <div className="mt-2 flex flex-wrap items-center gap-1.5">
-                <span className="text-[10px] text-neutral-500">Album đã tạo:</span>
-                {albums.slice(0, 5).map((alb) => (
-                  <button
-                    key={alb}
-                    type="button"
-                    onClick={() => {
-                      setValue('album', alb);
-                      setIsNewAlbumMode(false);
-                    }}
-                    className={`text-[10px] px-2 py-0.5 rounded-lg border transition-all cursor-pointer ${
-                      currentAlbum === alb
-                        ? 'bg-[var(--accent)] text-white border-[var(--accent)] font-bold'
-                        : 'bg-white/5 hover:bg-white/10 text-neutral-300 border-white/10'
-                    }`}
-                  >
-                    {alb}
-                  </button>
-                ))}
-              </div>
             )}
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
             <div>
-              <label className="block text-xs font-semibold text-neutral-300 mb-1.5">
-                Thể loại nhạc
+              <label className="block text-xs font-semibold text-neutral-300 mb-1 flex items-center gap-1">
+                <Tag className="w-3.5 h-3.5 text-pink-400" />
+                <span>Thể loại nhạc</span>
               </label>
-              <select
-                {...register('genre')}
-                className="w-full px-3.5 py-2.5 text-sm bg-black/40 border border-[var(--border-subtle)] focus:border-[var(--accent)] rounded-xl text-white outline-none cursor-pointer"
-              >
-                <option value="V-Pop">V-Pop</option>
-                <option value="Ballad">Ballad</option>
-                <option value="Lofi">Lofi & Chill</option>
-                <option value="EDM">EDM / Electronic</option>
-                <option value="Remix">Remix / Đua Xe</option>
-                <option value="Acoustic">Acoustic</option>
-                <option value="Indie">Indie</option>
-                <option value="Rap">Rap / Hip-Hop</option>
-              </select>
+
+              {!isNewGenreMode ? (
+                <select
+                  value={currentGenre || 'V-Pop'}
+                  onChange={(e) => {
+                    if (e.target.value === '__custom__') {
+                      setIsNewGenreMode(true);
+                      setValue('genre', '');
+                    } else {
+                      setValue('genre', e.target.value);
+                    }
+                  }}
+                  className="w-full px-3 py-2 text-xs bg-black/40 border border-[var(--border-subtle)] focus:border-[var(--accent)] rounded-xl text-white outline-none cursor-pointer"
+                >
+                  {allGenres.map((g) => (
+                    <option key={g} value={g}>
+                      🎵 {g}
+                    </option>
+                  ))}
+                  <option value="__custom__">+ Thêm thể loại mới...</option>
+                </select>
+              ) : (
+                <input
+                  type="text"
+                  placeholder="Nhập thể loại..."
+                  {...register('genre', { required: 'Vui lòng nhập thể loại' })}
+                  className="w-full px-3 py-2 text-xs bg-black/40 border border-[var(--border-subtle)] focus:border-[var(--accent)] rounded-xl text-white outline-none"
+                />
+              )}
             </div>
 
             <div>

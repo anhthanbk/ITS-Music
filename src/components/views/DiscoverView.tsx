@@ -280,32 +280,34 @@ export const DiscoverView: React.FC<DiscoverViewProps> = ({
                       </div>
                     </div>
 
-                    <div className="flex-1 min-w-0">
-                      <h4 className="text-xs font-bold text-white truncate group-hover:text-[var(--accent)]">
+                    <div className="flex-1 min-w-0 pr-2">
+                      <h4 className="text-[0.8rem] font-bold text-white truncate group-hover:text-[var(--accent)]">
                         {song.title}
                       </h4>
-                      <p className="text-[11px] text-neutral-400 truncate">
+                      <p className="text-[0.75rem] text-neutral-400 truncate">
                         {song.artist}
                       </p>
-                      <span className="text-[10px] text-neutral-500 font-mono tabular-nums">
-                        {song.playsCount.toLocaleString('vi-VN')} lượt nghe
-                      </span>
                     </div>
 
-                    <button
-                      type="button"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        toggleFavorite(song.id);
-                      }}
-                      className="p-2 text-neutral-400 hover:text-white rounded-full transition-colors cursor-pointer"
-                    >
-                      <Heart
-                        className={`w-4 h-4 ${
-                          isFav ? 'fill-pink-500 text-pink-500' : ''
-                        }`}
-                      />
-                    </button>
+                    <div className="flex items-center gap-1.5 shrink-0 ml-auto">
+                      <span className="text-xs font-mono font-bold tabular-nums text-amber-300">
+                        {song.playsCount.toLocaleString('vi-VN')}
+                      </span>
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          toggleFavorite(song.id);
+                        }}
+                        className="p-1 text-neutral-400 hover:text-white rounded-full transition-colors cursor-pointer shrink-0"
+                      >
+                        <Heart
+                          className={`w-3.5 h-3.5 ${
+                            isFav ? 'fill-pink-500 text-pink-500' : ''
+                          }`}
+                        />
+                      </button>
+                    </div>
                   </div>
                 );
               })}
@@ -329,7 +331,7 @@ export const DiscoverView: React.FC<DiscoverViewProps> = ({
               </div>
 
               <ResponsiveContainer width="100%" height="88%">
-                <LineChart data={generateRealChartData(top3Songs)}>
+                <LineChart data={generateRealChartData(top3Songs, isPlaying ? currentSong?.id : undefined)}>
                   <XAxis
                     dataKey="hour"
                     stroke="#64748b"
@@ -337,7 +339,7 @@ export const DiscoverView: React.FC<DiscoverViewProps> = ({
                     tickLine={false}
                     axisLine={false}
                   />
-                  <YAxis hide domain={['dataMin - 500', 'dataMax + 1000']} />
+                  <YAxis hide domain={[0, 'auto']} />
                   <Tooltip
                     contentStyle={{
                       backgroundColor: '#1f162b',
@@ -356,6 +358,8 @@ export const DiscoverView: React.FC<DiscoverViewProps> = ({
                     strokeWidth={2.5}
                     dot={false}
                     activeDot={{ r: 5 }}
+                    isAnimationActive={true}
+                    animationDuration={800}
                   />
                   <Line
                     type="monotone"
@@ -365,6 +369,8 @@ export const DiscoverView: React.FC<DiscoverViewProps> = ({
                     strokeWidth={2}
                     dot={false}
                     activeDot={{ r: 4 }}
+                    isAnimationActive={true}
+                    animationDuration={800}
                   />
                   <Line
                     type="monotone"
@@ -374,6 +380,8 @@ export const DiscoverView: React.FC<DiscoverViewProps> = ({
                     strokeWidth={2}
                     dot={false}
                     activeDot={{ r: 4 }}
+                    isAnimationActive={true}
+                    animationDuration={800}
                   />
                 </LineChart>
               </ResponsiveContainer>
@@ -435,7 +443,7 @@ export const DiscoverView: React.FC<DiscoverViewProps> = ({
             )}
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+          <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 gap-2 sm:gap-3">
             {filteredReleases.map((song) => {
               const isCurrent = currentSong?.id === song.id;
               const isFav = favorites.includes(song.id);
@@ -444,13 +452,13 @@ export const DiscoverView: React.FC<DiscoverViewProps> = ({
                 <div
                   key={song.id}
                   onClick={() => playSong(song, songs)}
-                  className={`group flex items-center gap-3 p-2.5 rounded-2xl transition-all cursor-pointer border ${
+                  className={`group flex items-center gap-2 sm:gap-3 p-2 sm:p-2.5 rounded-2xl transition-all cursor-pointer border ${
                     isCurrent
                       ? 'bg-[var(--accent-light)] border-[var(--accent)]/40'
                       : 'bg-white/5 hover:bg-white/10 border-white/5'
                   }`}
                 >
-                  <div className="relative w-14 h-14 rounded-xl overflow-hidden shrink-0">
+                  <div className="relative w-11 h-11 sm:w-14 sm:h-14 rounded-xl overflow-hidden shrink-0">
                     <img
                       src={song.coverUrl}
                       alt={song.title}
@@ -458,9 +466,9 @@ export const DiscoverView: React.FC<DiscoverViewProps> = ({
                     />
                     <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity">
                       {isCurrent && isPlaying ? (
-                        <Pause className="w-5 h-5 text-white fill-white" />
+                        <Pause className="w-4 h-4 sm:w-5 sm:h-5 text-white fill-white" />
                       ) : (
-                        <Play className="w-5 h-5 text-white fill-white ml-0.5" />
+                        <Play className="w-4 h-4 sm:w-5 sm:h-5 text-white fill-white ml-0.5" />
                       )}
                     </div>
                   </div>
@@ -469,15 +477,15 @@ export const DiscoverView: React.FC<DiscoverViewProps> = ({
                     <h4 className="text-xs font-bold text-white truncate group-hover:text-[var(--accent)]">
                       {song.title}
                     </h4>
-                    <p className="text-[11px] text-[var(--text-secondary)] truncate">
+                    <p className="text-[10px] sm:text-[11px] text-[var(--text-secondary)] truncate">
                       {song.artist}
                     </p>
-                    <div className="flex items-center gap-2 mt-1 text-[10px] text-neutral-400">
-                      <span className="px-1.5 py-0.2 rounded bg-white/10 text-neutral-300">
+                    <div className="flex items-center gap-1.5 mt-0.5 sm:mt-1 text-[9px] sm:text-[10px] text-neutral-400">
+                      <span className="px-1 py-0.2 rounded bg-white/10 text-neutral-300 truncate max-w-[60px] sm:max-w-none">
                         {song.genre}
                       </span>
-                      <span>·</span>
-                      <span className="font-mono tabular-nums">
+                      <span className="hidden xs:inline">·</span>
+                      <span className="font-mono tabular-nums hidden xs:inline">
                         {song.playsCount.toLocaleString('vi-VN')} views
                       </span>
                     </div>
@@ -489,10 +497,10 @@ export const DiscoverView: React.FC<DiscoverViewProps> = ({
                       e.stopPropagation();
                       toggleFavorite(song.id);
                     }}
-                    className="p-2 text-neutral-400 hover:text-white rounded-full transition-colors cursor-pointer"
+                    className="p-1 sm:p-2 text-neutral-400 hover:text-white rounded-full transition-colors cursor-pointer shrink-0"
                   >
                     <Heart
-                      className={`w-4 h-4 ${
+                      className={`w-3.5 h-3.5 sm:w-4 sm:h-4 ${
                         isFav ? 'fill-pink-500 text-pink-500' : ''
                       }`}
                     />
@@ -524,7 +532,7 @@ export const DiscoverView: React.FC<DiscoverViewProps> = ({
             </p>
           </div>
         ) : (
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-2.5 sm:gap-4">
             {playlists.map((pl) => (
               <div
                 key={pl.id}

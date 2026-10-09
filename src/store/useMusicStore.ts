@@ -3,6 +3,7 @@ import { Song, Playlist } from '../types/music';
 import { supabase } from '../supabaseClient.js';
 import { getSignedFileUrl, deleteFileFromStorage, uploadFileToStorage } from '../lib/storage';
 import { useAuthStore } from './useAuthStore';
+import { usePlayerStore } from './usePlayerStore';
 
 // Purge any legacy local storage data to guarantee 100% pure Supabase database sync
 if (typeof window !== 'undefined') {
@@ -430,23 +431,38 @@ export const useMusicStore = create<MusicState>((set, get) => ({
 
   // RECORD PLAY COUNT
   recordPlay: (id) => {
+    let newCount = 0;
     const updated = get().songs.map((s) => {
       if (s.id === id) {
-        const nextCount = s.playsCount + 1;
-        supabase.from('songs').update({ plays_count: nextCount }).eq('id', id).then();
-        return { ...s, playsCount: nextCount };
+        newCount = (s.playsCount || 0) + 1;
+        return { ...s, playsCount: newCount };
       }
       return s;
     });
     set({ songs: updated });
+
+    // Update active playerStore song if matching
+    try {
+      const { currentSong, updateCurrentSong } = usePlayerStore.getState();
+      if (currentSong && currentSong.id === id) {
+        updateCurrentSong({ ...currentSong, playsCount: newCount });
+      }
+    } catch {
+      // ignore
+    }
+
+    // Persist to Supabase songs table
+    if (newCount > 0) {
+      supabase.from('songs').update({ plays_count: newCount }).eq('id', id).then();
+    }
   },
 
   // 5. CREATING PLAYLIST IN SUPABASE
   createPlaylist: async (title, description, coverUrl) => {
     const newPl: Playlist = {
       id: 'pl-' + Date.now(),
-      title,
-      description,
+      title: title.trim(),
+      description: description?.trim() || '',
       coverUrl:
         coverUrl ||
         'https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?auto=format&fit=crop&w=600&q=80',
@@ -456,27 +472,37 @@ export const useMusicStore = create<MusicState>((set, get) => ({
     };
 
     try {
-      const {
-        data: { session },
-      } = await supabase.auth.getSession();
+      let currentUserId: string | null = null;
+      try {
+        const {
+          data: { user },
+        } = await supabase.auth.getUser();
+        currentUserId = user?.id || null;
+      } catch (authErr) {
+        console.warn('Could not get auth user for playlist:', authErr);
+      }
 
-      if (session?.user) {
-        const { data: inserted, error } = await supabase
-          .from('playlists')
-          .insert({
-            user_id: session.user.id,
-            title: newPl.title,
-            description: newPl.description,
-            cover_url: newPl.coverUrl,
-            song_ids: [],
-            is_custom: true,
-          })
-          .select()
-          .single();
+      if (!currentUserId) {
+        currentUserId = useAuthStore.getState().user?.id || null;
+      }
 
-        if (!error && inserted) {
-          newPl.id = inserted.id;
-        }
+      const { data: inserted, error } = await supabase
+        .from('playlists')
+        .insert({
+          user_id: currentUserId,
+          title: newPl.title,
+          description: newPl.description,
+          cover_url: newPl.coverUrl,
+          song_ids: [],
+          is_custom: true,
+        })
+        .select()
+        .single();
+
+      if (!error && inserted) {
+        newPl.id = inserted.id;
+      } else if (error) {
+        console.error('Lỗi khi tạo playlist trên Supabase:', error);
       }
     } catch (e) {
       console.warn('Error inserting playlist in Supabase:', e);
@@ -493,8 +519,8 @@ export const useMusicStore = create<MusicState>((set, get) => ({
       await supabase
         .from('playlists')
         .update({
-          title,
-          description,
+          title: title.trim(),
+          description: description?.trim() || '',
           cover_url: coverUrl,
         })
         .eq('id', id);
@@ -506,8 +532,8 @@ export const useMusicStore = create<MusicState>((set, get) => ({
       pl.id === id
         ? {
             ...pl,
-            title,
-            description,
+            title: title.trim(),
+            description: description?.trim() || '',
             coverUrl: coverUrl || pl.coverUrl,
           }
         : pl
@@ -520,7 +546,6 @@ export const useMusicStore = create<MusicState>((set, get) => ({
   deletePlaylist: async (id) => {
     const plToDelete = get().playlists.find((p) => p.id === id);
 
-    // 7.1 Remove cover image from storage if uploaded to app-files
     if (plToDelete?.coverUrl) {
       try {
         await deleteFileFromStorage(plToDelete.coverUrl);
@@ -529,7 +554,6 @@ export const useMusicStore = create<MusicState>((set, get) => ({
       }
     }
 
-    // 7.2 Delete from Database table
     try {
       await supabase.from('playlists').delete().eq('id', id);
     } catch (e) {
@@ -544,19 +568,30 @@ export const useMusicStore = create<MusicState>((set, get) => ({
   // 8. ADD/REMOVE SONG IN PLAYLIST IN SUPABASE
   addSongToPlaylist: async (playlistId, songId) => {
     const pl = get().playlists.find((p) => p.id === playlistId);
-    if (!pl || pl.songIds.includes(songId)) return false;
+    if (!pl) return false;
+    if (pl.songIds.includes(songId)) return true;
 
     const newSongIds = [...pl.songIds, songId];
-    try {
-      await supabase.from('playlists').update({ song_ids: newSongIds }).eq('id', playlistId);
-    } catch (e) {
-      console.warn('Error updating playlist songs in Supabase:', e);
-    }
 
+    // Optimistic local update
     const updated = get().playlists.map((p) =>
       p.id === playlistId ? { ...p, songIds: newSongIds } : p
     );
     set({ playlists: updated });
+
+    try {
+      const { error } = await supabase
+        .from('playlists')
+        .update({ song_ids: newSongIds })
+        .eq('id', playlistId);
+
+      if (error) {
+        console.warn('Lỗi cập nhật danh sách bài hát trong playlist trên Supabase:', error);
+      }
+    } catch (e) {
+      console.warn('Error updating playlist songs in Supabase:', e);
+    }
+
     return true;
   },
 
@@ -565,16 +600,26 @@ export const useMusicStore = create<MusicState>((set, get) => ({
     if (!pl) return false;
 
     const newSongIds = pl.songIds.filter((sid) => sid !== songId);
-    try {
-      await supabase.from('playlists').update({ song_ids: newSongIds }).eq('id', playlistId);
-    } catch (e) {
-      console.warn('Error removing song from playlist in Supabase:', e);
-    }
 
+    // Optimistic local update
     const updated = get().playlists.map((p) =>
       p.id === playlistId ? { ...p, songIds: newSongIds } : p
     );
     set({ playlists: updated });
+
+    try {
+      const { error } = await supabase
+        .from('playlists')
+        .update({ song_ids: newSongIds })
+        .eq('id', playlistId);
+
+      if (error) {
+        console.warn('Lỗi xóa bài hát khỏi playlist trên Supabase:', error);
+      }
+    } catch (e) {
+      console.warn('Error removing song from playlist in Supabase:', e);
+    }
+
     return true;
   },
 

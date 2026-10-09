@@ -1,0 +1,31 @@
+{
+  "id": "/",
+  "name": "ITS Music Entertainment",
+  "short_name": "ITS Music",
+  "description": "Nền tảng nghe nhạc trực tuyến ITS Music Entertainment với bảng xếp hạng, karaoke lời động và phát nhạc đỉnh cao.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#0a0512",
+  "theme_color": "#0a0512",
+  "icons": [
+    {
+      "src": "/pwa-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/pwa-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/pwa-maskable-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ]
+}

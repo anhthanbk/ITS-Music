@@ -82,8 +82,8 @@ export const AudioController: React.FC = () => {
     if (!audio) return;
     setCurrentTime(audio.currentTime);
 
-    // Record play count once 8 seconds elapsed
-    if (currentSong && audio.currentTime > 8 && recordedPlayRef.current !== currentSong.id) {
+    // Record play count as soon as playback starts (1 second elapsed)
+    if (currentSong && audio.currentTime > 1 && recordedPlayRef.current !== currentSong.id) {
       recordPlay(currentSong.id);
       recordedPlayRef.current = currentSong.id;
     }

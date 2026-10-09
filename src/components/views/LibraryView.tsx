@@ -7,6 +7,7 @@ import {
   Trash2,
   FolderHeart,
   Music,
+  FolderPlus,
 } from 'lucide-react';
 import { useMusicStore } from '../../store/useMusicStore';
 import { usePlayerStore } from '../../store/usePlayerStore';
@@ -16,11 +17,13 @@ import { ConfirmModal } from '../common/ConfirmModal';
 interface LibraryViewProps {
   onOpenCreatePlaylist: () => void;
   onSelectPlaylist: (playlist: Playlist) => void;
+  onOpenAddToPlaylist?: (song: Song) => void;
 }
 
 export const LibraryView: React.FC<LibraryViewProps> = ({
   onOpenCreatePlaylist,
   onSelectPlaylist,
+  onOpenAddToPlaylist,
 }) => {
   const { songs, playlists, favorites, toggleFavorite, deletePlaylist } = useMusicStore();
   const { playSong, playPlaylist, currentSong, isPlaying } = usePlayerStore();
@@ -53,9 +56,6 @@ export const LibraryView: React.FC<LibraryViewProps> = ({
             <FolderHeart className="w-6 h-6 text-pink-400" />
             Thư Viện Cá Nhân
           </h1>
-          <p className="text-xs text-[var(--text-secondary)] mt-0.5">
-            Tất cả bài hát yêu thích và tuyển tập playlist của bạn
-          </p>
         </div>
 
         {/* Tab Switcher */}
@@ -146,38 +146,48 @@ export const LibraryView: React.FC<LibraryViewProps> = ({
                       </div>
                     </div>
 
-                    <div className="flex-1 min-w-0">
+                    <div className="flex-1 min-w-0 pr-2">
                       <h4
-                        className={`text-xs md:text-sm font-semibold truncate ${
+                        className={`text-[0.8rem] sm:text-sm font-bold leading-snug truncate ${
                           isCurrent ? 'text-[var(--accent)]' : 'text-white'
                         }`}
                       >
                         {song.title}
                       </h4>
-                      <p className="text-xs text-[var(--text-secondary)] truncate">
+                      <p className="text-[0.75rem] sm:text-xs text-[var(--text-secondary)] mt-0.5 font-medium leading-tight truncate">
                         {song.artist}
                       </p>
                     </div>
 
-                    <span className="hidden sm:inline px-2 py-0.5 rounded bg-white/10 text-neutral-300 text-xs">
-                      {song.genre}
-                    </span>
-
-                    <span className="text-xs font-mono tabular-nums text-neutral-400 w-12 text-right">
-                      {Math.floor(song.duration / 60)}:{(song.duration % 60).toString().padStart(2, '0')}
-                    </span>
-
-                    <button
-                      type="button"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        toggleFavorite(song.id);
-                      }}
-                      className="p-2 text-pink-500 hover:text-neutral-400 rounded-full transition-colors cursor-pointer"
-                      title="Bỏ thích"
-                    >
-                      <Heart className="w-4 h-4 fill-pink-500" />
-                    </button>
+                    <div className="flex items-center gap-1 sm:gap-1.5 shrink-0 ml-auto">
+                      <span className="text-xs font-mono font-bold tabular-nums text-amber-300 sm:text-neutral-200 mr-1">
+                        {song.playsCount.toLocaleString('vi-VN')}
+                      </span>
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          toggleFavorite(song.id);
+                        }}
+                        className="p-1 sm:p-1.5 text-pink-500 hover:text-neutral-400 rounded-full transition-colors cursor-pointer shrink-0"
+                        title="Bỏ thích"
+                      >
+                        <Heart className="w-3.5 h-3.5 sm:w-4 sm:h-4 fill-pink-500" />
+                      </button>
+                      {onOpenAddToPlaylist && (
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            onOpenAddToPlaylist(song);
+                          }}
+                          className="p-1 sm:p-1.5 text-neutral-400 hover:text-white rounded-full transition-colors cursor-pointer shrink-0"
+                          title="Thêm vào playlist"
+                        >
+                          <FolderPlus className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                        </button>
+                      )}
+                    </div>
                   </div>
                 );
               })}

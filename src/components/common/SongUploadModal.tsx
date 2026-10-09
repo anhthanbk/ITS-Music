@@ -15,6 +15,8 @@ import {
   FolderPlus,
   Disc3,
   Bot,
+  Tag,
+  Plus,
 } from 'lucide-react';
 import { useForm, SubmitHandler } from 'react-hook-form';
 import { useMusicStore } from '../../store/useMusicStore';
@@ -45,7 +47,7 @@ export const SongUploadModal: React.FC<SongUploadModalProps> = ({
   onOpenAuth,
 }) => {
   const { user } = useAuthStore();
-  const { uploadSong, albums } = useMusicStore();
+  const { uploadSong, albums, songs } = useMusicStore();
 
   const [audioFile, setAudioFile] = useState<File | null>(null);
   const [audioPreviewUrl, setAudioPreviewUrl] = useState<string | null>(null);
@@ -62,8 +64,29 @@ export const SongUploadModal: React.FC<SongUploadModalProps> = ({
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // Album mode: picking from existing albums or creating a brand new album
+  // Album & Genre modes: picking existing or creating brand new
   const [isNewAlbumMode, setIsNewAlbumMode] = useState(false);
+  const [isNewGenreMode, setIsNewGenreMode] = useState(false);
+
+  const PRESET_GENRES = [
+    'V-Pop',
+    'Ballad',
+    'Lofi & Chill',
+    'EDM / Dance',
+    'Remix',
+    'Acoustic',
+    'Indie',
+    'Rap / Hip-Hop',
+    'Pop',
+    'Rock',
+    'R&B / Soul',
+    'Bolero',
+    'Jazz',
+  ];
+
+  const allGenres = Array.from(
+    new Set([...PRESET_GENRES, ...songs.map((s) => s.genre).filter(Boolean)])
+  );
 
   const audioInputRef = useRef<HTMLInputElement | null>(null);
   const coverInputRef = useRef<HTMLInputElement | null>(null);
@@ -305,34 +328,11 @@ export const SongUploadModal: React.FC<SongUploadModalProps> = ({
         )}
 
         {/* Upload Form */}
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
-          {/* 1. AUDIO FILE DROPZONE */}
-          <div>
-            <label className="block text-xs font-bold text-neutral-300 uppercase tracking-wider mb-2">
-              1. Tệp Âm Thanh (.mp3, .wav, .m4a, .flac) <span className="text-red-400">*</span>
-            </label>
-
-            <div
-              onDragOver={(e) => {
-                e.preventDefault();
-                setIsAudioDragOver(true);
-              }}
-              onDragLeave={() => setIsAudioDragOver(false)}
-              onDrop={(e) => {
-                e.preventDefault();
-                setIsAudioDragOver(false);
-                const file = e.dataTransfer.files?.[0];
-                if (file) handleAudioSelection(file);
-              }}
-              onClick={() => audioInputRef.current?.click()}
-              className={`relative border-2 border-dashed rounded-2xl p-5 text-center transition-all cursor-pointer ${
-                isAudioDragOver
-                  ? 'border-[var(--accent)] bg-[var(--accent-light)] scale-[1.01]'
-                  : audioFile
-                  ? 'border-emerald-500/50 bg-emerald-500/5'
-                  : 'border-white/15 hover:border-[var(--accent)]/50 bg-black/20 hover:bg-white/5'
-              }`}
-            >
+        <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+          {/* 1. COMPACT ICON UPLOAD ROW (Audio & Cover Art) */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 p-3 rounded-2xl bg-black/30 border border-[var(--border-subtle)]">
+            {/* Audio File Picker */}
+            <div className="flex items-center gap-2.5">
               <input
                 ref={audioInputRef}
                 type="file"
@@ -343,51 +343,43 @@ export const SongUploadModal: React.FC<SongUploadModalProps> = ({
                 }}
                 className="hidden"
               />
+              <button
+                type="button"
+                onClick={() => audioInputRef.current?.click()}
+                className={`p-2.5 rounded-xl border flex items-center gap-2 text-xs font-semibold transition-all cursor-pointer shrink-0 ${
+                  audioFile
+                    ? 'bg-emerald-500/20 border-emerald-500/40 text-emerald-300'
+                    : 'bg-white/5 hover:bg-white/10 border-white/15 text-white'
+                }`}
+              >
+                <FileAudio className="w-4 h-4 text-[var(--accent)]" />
+                <span>{audioFile ? 'Đổi tệp âm thanh' : 'Chọn tệp MP3 *'}</span>
+              </button>
 
               {audioFile ? (
-                <div className="flex items-center justify-between gap-3 text-left">
-                  <div className="flex items-center gap-3">
-                    <div className="w-11 h-11 rounded-xl bg-emerald-500/20 text-emerald-400 flex items-center justify-center shrink-0">
-                      <FileAudio className="w-6 h-6" />
-                    </div>
-                    <div className="min-w-0">
-                      <p className="text-sm font-bold text-white truncate">{audioFile.name}</p>
-                      <p className="text-[11px] text-neutral-400 mt-0.5">
-                        {(audioFile.size / (1024 * 1024)).toFixed(2)} MB · Sẵn sàng tải lên Supabase Storage
-                      </p>
-                    </div>
-                  </div>
-
-                  {audioPreviewUrl && (
-                    <button
-                      type="button"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        togglePreviewPlay();
-                      }}
-                      className="p-2.5 rounded-full bg-[var(--accent)] hover:opacity-90 text-white shrink-0 shadow-md cursor-pointer transition-transform active:scale-95"
-                      title={isPlayingPreview ? 'Tạm dừng nghe thử' : 'Nghe thử tệp âm thanh'}
-                    >
-                      {isPlayingPreview ? (
-                        <Pause className="w-4 h-4 fill-white" />
-                      ) : (
-                        <Play className="w-4 h-4 fill-white ml-0.5" />
-                      )}
-                    </button>
-                  )}
+                <div className="min-w-0 flex-1">
+                  <p className="text-xs font-bold text-white truncate">{audioFile.name}</p>
+                  <p className="text-[10px] text-neutral-400">
+                    {(audioFile.size / (1024 * 1024)).toFixed(1)} MB
+                  </p>
                 </div>
               ) : (
-                <div className="py-4">
-                  <div className="w-12 h-12 rounded-2xl bg-white/5 text-[var(--accent)] flex items-center justify-center mx-auto mb-2.5">
-                    <Upload className="w-6 h-6" />
-                  </div>
-                  <p className="text-sm font-semibold text-white">
-                    Kéo thả tệp âm thanh vào đây hoặc <span className="text-[var(--accent)] underline">chọn từ thiết bị</span>
-                  </p>
-                  <p className="text-xs text-neutral-400 mt-1">
-                    Hỗ trợ tệp MP3, WAV, AAC, M4A, FLAC · Tự động phát hiện thời lượng và tên ca khúc
-                  </p>
-                </div>
+                <span className="text-[11px] text-neutral-400 truncate">Chưa chọn tệp (.mp3, .wav)</span>
+              )}
+
+              {audioPreviewUrl && (
+                <button
+                  type="button"
+                  onClick={togglePreviewPlay}
+                  className="p-2 rounded-full bg-[var(--accent)] text-white shrink-0 hover:scale-105 transition-transform"
+                  title={isPlayingPreview ? 'Tạm dừng' : 'Nghe thử'}
+                >
+                  {isPlayingPreview ? (
+                    <Pause className="w-3.5 h-3.5 fill-white" />
+                  ) : (
+                    <Play className="w-3.5 h-3.5 fill-white ml-0.5" />
+                  )}
+                </button>
               )}
 
               {/* Hidden preview audio element */}
@@ -400,254 +392,197 @@ export const SongUploadModal: React.FC<SongUploadModalProps> = ({
                 />
               )}
             </div>
-          </div>
 
-          {/* 2. COVER ART & BASIC INFO */}
-          <div className="grid grid-cols-1 md:grid-cols-12 gap-5 items-start">
-            {/* Cover Art Dropzone (4 cols) */}
-            <div className="md:col-span-4">
-              <label className="block text-xs font-bold text-neutral-300 uppercase tracking-wider mb-2">
-                2. Ảnh Bìa (Cover Art)
-              </label>
-
-              <div
-                onDragOver={(e) => {
-                  e.preventDefault();
-                  setIsCoverDragOver(true);
-                }}
-                onDragLeave={() => setIsCoverDragOver(false)}
-                onDrop={(e) => {
-                  e.preventDefault();
-                  setIsCoverDragOver(false);
-                  const file = e.dataTransfer.files?.[0];
+            {/* Cover Art Image Picker */}
+            <div className="flex items-center gap-2.5">
+              <input
+                ref={coverInputRef}
+                type="file"
+                accept="image/*"
+                onChange={(e) => {
+                  const file = e.target.files?.[0];
                   if (file) handleCoverSelection(file);
                 }}
+                className="hidden"
+              />
+              <div
                 onClick={() => coverInputRef.current?.click()}
-                className={`relative aspect-square border-2 border-dashed rounded-2xl overflow-hidden flex flex-col items-center justify-center text-center p-3 transition-all cursor-pointer group ${
-                  isCoverDragOver
-                    ? 'border-pink-500 bg-pink-500/10'
-                    : coverPreviewUrl
-                    ? 'border-transparent'
-                    : 'border-white/15 hover:border-pink-500/50 bg-black/20 hover:bg-white/5'
-                }`}
+                className="w-10 h-10 rounded-xl border border-dashed border-white/20 hover:border-[var(--accent)] bg-black/40 overflow-hidden flex items-center justify-center shrink-0 cursor-pointer relative group transition-all"
+                title="Chọn ảnh bìa"
               >
-                <input
-                  ref={coverInputRef}
-                  type="file"
-                  accept="image/*"
-                  onChange={(e) => {
-                    const file = e.target.files?.[0];
-                    if (file) handleCoverSelection(file);
-                  }}
-                  className="hidden"
-                />
-
                 {coverPreviewUrl ? (
-                  <>
-                    <img
-                      src={coverPreviewUrl}
-                      alt="Cover Preview"
-                      className="absolute inset-0 w-full h-full object-cover"
-                    />
-                    <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 flex flex-col items-center justify-center transition-opacity text-white text-xs font-semibold p-2">
-                      <ImageIcon className="w-5 h-5 mb-1" />
-                      <span>Đổi ảnh bìa</span>
-                    </div>
-                  </>
+                  <img src={coverPreviewUrl} alt="Cover Preview" className="w-full h-full object-cover" />
                 ) : (
-                  <>
-                    <div className="w-10 h-10 rounded-xl bg-pink-500/15 text-pink-400 flex items-center justify-center mb-2">
-                      <ImageIcon className="w-5 h-5" />
-                    </div>
-                    <span className="text-xs font-medium text-neutral-300">
-                      Kéo thả ảnh bìa hoặc tải lên
-                    </span>
-                    <span className="text-[10px] text-neutral-500 mt-0.5">JPG, PNG, WEBP</span>
-                  </>
+                  <ImageIcon className="w-4 h-4 text-neutral-400 group-hover:text-white transition-colors" />
                 )}
               </div>
-            </div>
 
-            {/* Song Details (8 cols) */}
-            <div className="md:col-span-8 space-y-4">
+              <div className="min-w-0 flex-1">
+                <button
+                  type="button"
+                  onClick={() => coverInputRef.current?.click()}
+                  className="text-xs font-semibold text-neutral-200 hover:text-white cursor-pointer block truncate"
+                >
+                  {coverPreviewUrl ? 'Đổi ảnh bìa' : 'Chọn ảnh bìa bài hát'}
+                </button>
+                <p className="text-[10px] text-neutral-500">JPG, PNG, WEBP (Tùy chọn)</p>
+              </div>
+            </div>
+          </div>
+
+          {/* 2. SONG DETAILS */}
+          <div className="space-y-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div>
-                <label className="block text-xs font-semibold text-neutral-300 mb-1.5">
+                <label className="block text-xs font-semibold text-neutral-300 mb-1">
                   Tên bài hát <span className="text-red-400">*</span>
                 </label>
                 <input
                   type="text"
                   placeholder="Ví dụ: Đừng Làm Trái Tim Anh Đau"
                   {...register('title', { required: 'Vui lòng nhập tên bài hát' })}
-                  className="w-full px-3.5 py-2.5 text-sm bg-black/40 border border-[var(--border-subtle)] focus:border-[var(--accent)] rounded-xl text-white outline-none"
+                  className="w-full px-3 py-2 text-xs bg-black/40 border border-[var(--border-subtle)] focus:border-[var(--accent)] rounded-xl text-white outline-none"
                 />
                 {errors.title && (
-                  <p className="text-[11px] text-red-400 mt-1">{errors.title.message}</p>
+                  <p className="text-[10px] text-red-400 mt-0.5">{errors.title.message}</p>
                 )}
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <div>
-                  <label className="block text-xs font-semibold text-neutral-300 mb-1.5">
-                    Nghệ sĩ thể hiện <span className="text-red-400">*</span>
-                  </label>
+              <div>
+                <label className="block text-xs font-semibold text-neutral-300 mb-1">
+                  Nghệ sĩ thể hiện <span className="text-red-400">*</span>
+                </label>
+                <input
+                  type="text"
+                  placeholder="Ví dụ: Sơn Tùng M-TP"
+                  {...register('artist', { required: 'Vui lòng nhập tên nghệ sĩ' })}
+                  className="w-full px-3 py-2 text-xs bg-black/40 border border-[var(--border-subtle)] focus:border-[var(--accent)] rounded-xl text-white outline-none"
+                />
+                {errors.artist && (
+                  <p className="text-[10px] text-red-400 mt-0.5">{errors.artist.message}</p>
+                )}
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-4 gap-3">
+              <div>
+                <label className="block text-xs font-semibold text-neutral-300 mb-1 flex items-center gap-1">
+                  <Disc3 className="w-3.5 h-3.5 text-purple-400" />
+                  <span>Album</span>
+                </label>
+                {!isNewAlbumMode && albums.length > 0 ? (
+                  <select
+                    value={currentAlbum || ''}
+                    onChange={(e) => {
+                      if (e.target.value === '__new__') {
+                        setIsNewAlbumMode(true);
+                        setValue('album', '');
+                      } else {
+                        setValue('album', e.target.value);
+                      }
+                    }}
+                    className="w-full px-3 py-2 text-xs bg-black/40 border border-[var(--border-subtle)] focus:border-[var(--accent)] rounded-xl text-white outline-none cursor-pointer"
+                  >
+                    <option value="">-- Đĩa đơn (Không album) --</option>
+                    {albums.map((alb) => (
+                      <option key={alb} value={alb}>
+                        📁 {alb}
+                      </option>
+                    ))}
+                    <option value="__new__">+ Tạo album mới...</option>
+                  </select>
+                ) : (
                   <input
                     type="text"
-                    placeholder="Ví dụ: Sơn Tùng M-TP"
-                    {...register('artist', { required: 'Vui lòng nhập tên nghệ sĩ' })}
-                    className="w-full px-3.5 py-2.5 text-sm bg-black/40 border border-[var(--border-subtle)] focus:border-[var(--accent)] rounded-xl text-white outline-none"
+                    placeholder="Nhập tên album..."
+                    {...register('album')}
+                    className="w-full px-3 py-2 text-xs bg-black/40 border border-[var(--border-subtle)] focus:border-[var(--accent)] rounded-xl text-white outline-none"
                   />
-                  {errors.artist && (
-                    <p className="text-[11px] text-red-400 mt-1">{errors.artist.message}</p>
-                  )}
-                </div>
-
-                <div>
-                  <div className="flex items-center justify-between mb-1.5">
-                    <label className="block text-xs font-semibold text-neutral-300 flex items-center gap-1.5">
-                      <Disc3 className="w-3.5 h-3.5 text-purple-400" />
-                      Album
-                    </label>
-                    <button
-                      type="button"
-                      onClick={() => setIsNewAlbumMode(!isNewAlbumMode)}
-                      className="text-[11px] text-[var(--accent)] hover:underline flex items-center gap-1 cursor-pointer font-medium"
-                    >
-                      {isNewAlbumMode ? (
-                        <span>Chọn album có sẵn</span>
-                      ) : (
-                        <>
-                          <FolderPlus className="w-3 h-3" />
-                          <span>+ Tạo album mới</span>
-                        </>
-                      )}
-                    </button>
-                  </div>
-
-                  {!isNewAlbumMode && albums.length > 0 ? (
-                    <select
-                      value={currentAlbum || ''}
-                      onChange={(e) => {
-                        if (e.target.value === '__new__') {
-                          setIsNewAlbumMode(true);
-                          setValue('album', '');
-                        } else {
-                          setValue('album', e.target.value);
-                        }
-                      }}
-                      className="w-full px-3.5 py-2.5 text-sm bg-black/40 border border-[var(--border-subtle)] focus:border-[var(--accent)] rounded-xl text-white outline-none cursor-pointer"
-                    >
-                      <option value="">-- Không chọn Album (Đĩa đơn) --</option>
-                      {albums.map((alb) => (
-                        <option key={alb} value={alb}>
-                          📁 {alb}
-                        </option>
-                      ))}
-                      <option value="__new__">+ Tạo album mới trên Supabase...</option>
-                    </select>
-                  ) : (
-                    <input
-                      type="text"
-                      placeholder="Nhập tên album mới (sẽ tạo trên Supabase)..."
-                      {...register('album')}
-                      className="w-full px-3.5 py-2.5 text-sm bg-black/40 border border-[var(--border-subtle)] focus:border-[var(--accent)] rounded-xl text-white outline-none"
-                    />
-                  )}
-
-                  {/* Quick-select badges for existing albums */}
-                  {albums.length > 0 && (
-                    <div className="mt-2 flex flex-wrap items-center gap-1.5">
-                      <span className="text-[10px] text-neutral-500">Album đã tạo:</span>
-                      {albums.slice(0, 5).map((alb) => (
-                        <button
-                          key={alb}
-                          type="button"
-                          onClick={() => {
-                            setValue('album', alb);
-                            setIsNewAlbumMode(false);
-                          }}
-                          className={`text-[10px] px-2 py-0.5 rounded-lg border transition-all cursor-pointer ${
-                            currentAlbum === alb
-                              ? 'bg-[var(--accent)] text-white border-[var(--accent)] font-bold'
-                              : 'bg-white/5 hover:bg-white/10 text-neutral-300 border-white/10'
-                          }`}
-                        >
-                          {alb}
-                        </button>
-                      ))}
-                    </div>
-                  )}
-                </div>
+                )}
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                <div>
-                  <label className="block text-xs font-semibold text-neutral-300 mb-1.5">
-                    Thể loại
-                  </label>
+              <div>
+                <label className="block text-xs font-semibold text-neutral-300 mb-1 flex items-center gap-1">
+                  <Tag className="w-3.5 h-3.5 text-pink-400" />
+                  <span>Thể loại</span>
+                </label>
+                {!isNewGenreMode ? (
                   <select
-                    {...register('genre')}
+                    value={currentGenre || 'V-Pop'}
+                    onChange={(e) => {
+                      if (e.target.value === '__custom__') {
+                        setIsNewGenreMode(true);
+                        setValue('genre', '');
+                      } else {
+                        setValue('genre', e.target.value);
+                      }
+                    }}
                     className="w-full px-3 py-2 text-xs bg-black/40 border border-[var(--border-subtle)] focus:border-[var(--accent)] rounded-xl text-white outline-none cursor-pointer"
                   >
-                    <option value="V-Pop">V-Pop</option>
-                    <option value="Ballad">Ballad</option>
-                    <option value="Lofi">Lofi & Chill</option>
-                    <option value="EDM">EDM / Dance</option>
-                    <option value="Remix">Remix</option>
-                    <option value="Acoustic">Acoustic</option>
-                    <option value="Indie">Indie</option>
-                    <option value="Rap">Rap / Hip-Hop</option>
+                    {allGenres.map((g) => (
+                      <option key={g} value={g}>
+                        🎵 {g}
+                      </option>
+                    ))}
+                    <option value="__custom__">+ Thêm thể loại mới...</option>
                   </select>
-                </div>
-
-                <div>
-                  <label className="block text-xs font-semibold text-neutral-300 mb-1.5">
-                    Khu vực
-                  </label>
-                  <select
-                    {...register('region')}
-                    className="w-full px-3 py-2 text-xs bg-black/40 border border-[var(--border-subtle)] focus:border-[var(--accent)] rounded-xl text-white outline-none cursor-pointer"
-                  >
-                    <option value="vpop">Việt Nam</option>
-                    <option value="usuk">Âu Mỹ (US-UK)</option>
-                    <option value="kpop">Hàn Quốc (K-Pop)</option>
-                    <option value="other">Quốc tế khác</option>
-                  </select>
-                </div>
-
-                <div>
-                  <label className="block text-xs font-semibold text-neutral-300 mb-1.5">
-                    Thời lượng (giây)
-                  </label>
+                ) : (
                   <input
-                    type="number"
-                    min="1"
-                    max="3600"
-                    {...register('duration', { valueAsNumber: true })}
-                    className="w-full px-3 py-2 text-xs bg-black/40 border border-[var(--border-subtle)] focus:border-[var(--accent)] rounded-xl text-white outline-none font-mono"
+                    type="text"
+                    placeholder="Nhập thể loại..."
+                    {...register('genre', { required: 'Vui lòng nhập thể loại' })}
+                    className="w-full px-3 py-2 text-xs bg-black/40 border border-[var(--border-subtle)] focus:border-[var(--accent)] rounded-xl text-white outline-none"
                   />
-                </div>
+                )}
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-neutral-300 mb-1">
+                  Khu vực
+                </label>
+                <select
+                  {...register('region')}
+                  className="w-full px-3 py-2 text-xs bg-black/40 border border-[var(--border-subtle)] focus:border-[var(--accent)] rounded-xl text-white outline-none cursor-pointer"
+                >
+                  <option value="vpop">Việt Nam</option>
+                  <option value="usuk">Âu Mỹ (US-UK)</option>
+                  <option value="kpop">Hàn Quốc (K-Pop)</option>
+                  <option value="other">Quốc tế khác</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-neutral-300 mb-1">
+                  Thời lượng (s)
+                </label>
+                <input
+                  type="number"
+                  min="1"
+                  max="3600"
+                  {...register('duration', { valueAsNumber: true })}
+                  className="w-full px-3 py-2 text-xs bg-black/40 border border-[var(--border-subtle)] focus:border-[var(--accent)] rounded-xl text-white outline-none font-mono"
+                />
               </div>
             </div>
           </div>
 
           {/* 3. LYRICS MANUAL EDITOR */}
-          <div className="space-y-2">
-            <div className="flex flex-wrap items-center justify-between gap-2">
+          <div className="space-y-1.5">
+            <div className="flex items-center justify-between gap-2">
               <label className="text-xs font-semibold text-neutral-300 flex items-center gap-1.5">
                 <Music2 className="w-3.5 h-3.5 text-purple-400" />
-                Lời bài hát thủ công (Định dạng LRC Karaoke)
+                <span>Lời bài hát thủ công (LRC Karaoke)</span>
               </label>
-
-              <span className="text-[11px] text-neutral-400">
-                Định dạng mốc thời gian: <code className="text-purple-300">[MM:SS] Lời bài hát</code>
+              <span className="text-[10px] text-neutral-400 font-mono">
+                [MM:SS] Lời bài hát
               </span>
             </div>
 
             <textarea
-              rows={5}
-              placeholder="[00:00] Đoạn dạo đầu...&#10;[00:15] Nhập lời bài hát câu thứ nhất...&#10;[00:30] Nhập lời bài hát câu thứ hai...&#10;&#10;Mẹo: Nhập theo dạng [phút:giây] để hiển thị chữ Karaoke nhấp nháy đồng bộ khi phát nhạc!"
+              rows={3}
+              placeholder="[00:00] Đoạn dạo đầu...&#10;[00:15] Nhập lời bài hát câu thứ nhất..."
               {...register('lyricsRaw')}
-              className="w-full px-3.5 py-2.5 text-xs font-mono bg-black/40 border border-[var(--border-subtle)] focus:border-[var(--accent)] rounded-xl text-white outline-none resize-none leading-relaxed"
+              className="w-full px-3 py-2 text-xs font-mono bg-black/40 border border-[var(--border-subtle)] focus:border-[var(--accent)] rounded-xl text-white outline-none resize-none leading-relaxed"
             />
           </div>
 

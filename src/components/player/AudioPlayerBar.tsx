@@ -14,13 +14,18 @@ import {
   Heart,
   Settings2,
   Waves,
+  FolderPlus,
 } from 'lucide-react';
 import { usePlayerStore } from '../../store/usePlayerStore';
 import { useMusicStore } from '../../store/useMusicStore';
-import { AudioQuality } from '../../types/music';
+import { AudioQuality, Song } from '../../types/music';
 import { AudioVisualizer } from '../common/AudioVisualizer';
 
-export const AudioPlayerBar: React.FC = () => {
+interface AudioPlayerBarProps {
+  onOpenAddToPlaylist?: (song: Song) => void;
+}
+
+export const AudioPlayerBar: React.FC<AudioPlayerBarProps> = ({ onOpenAddToPlaylist }) => {
   const {
     currentSong,
     isPlaying,
@@ -48,7 +53,6 @@ export const AudioPlayerBar: React.FC = () => {
 
   const { favorites, toggleFavorite } = useMusicStore();
   const [showQualityMenu, setShowQualityMenu] = useState(false);
-  const [showVisualizerBar, setShowVisualizerBar] = useState(false);
 
   const isFav = currentSong ? favorites.includes(currentSong.id) : false;
   const songDuration = duration || currentSong?.duration || 180;
@@ -65,30 +69,148 @@ export const AudioPlayerBar: React.FC = () => {
   };
 
   return (
-    <div className="fixed bottom-0 left-0 right-0 z-40 bg-[var(--bg-player)] border-t border-[var(--border-subtle)] backdrop-blur-md">
-      {/* Expanded Equalizer Popup Dock */}
-      {showVisualizerBar && currentSong && (
-        <div className="px-6 py-3 border-b border-white/10 bg-black/40 backdrop-blur-xl animate-in slide-in-from-bottom-2 duration-200">
-          <div className="max-w-4xl mx-auto flex items-center justify-between gap-4">
-            <div className="flex items-center gap-2">
-              <Waves className="w-4 h-4 text-amber-400 animate-pulse" />
-              <span className="text-xs font-bold text-white tracking-wide">Equalizer - Tần số âm thanh</span>
-            </div>
-            <div className="flex-1 max-w-xl mx-4">
-              <AudioVisualizer variant="bars" barCount={32} height={44} colorTheme="neon" showPeaks={true} />
-            </div>
-            <button
-              type="button"
-              onClick={() => setShowVisualizerBar(false)}
-              className="text-xs text-neutral-400 hover:text-white px-2 py-1 bg-white/10 rounded-lg"
-            >
-              Đóng
-            </button>
-          </div>
-        </div>
-      )}
+    <div className="fixed bottom-14 md:bottom-0 left-0 right-0 z-40 bg-[var(--bg-player)]/95 border-t border-[var(--border-subtle)] backdrop-blur-xl transition-all">
 
-      <div className="h-22 px-4 md:px-6 flex items-center justify-between">
+      {/* ========================================== */}
+      {/* 1. MOBILE MINI PLAYER (Visible on < md)    */}
+      {/* ========================================== */}
+      <div className="flex md:hidden h-15 px-3 items-center justify-between relative overflow-hidden">
+        {/* Top Mini Progress Bar */}
+        <div className="absolute top-0 left-0 right-0 h-1 bg-white/10">
+          <div
+            className="h-full bg-[var(--accent)] transition-all duration-200"
+            style={{ width: `${progressPercent}%` }}
+          />
+        </div>
+
+        {/* Left: Cover & Info */}
+        <div
+          onClick={() => currentSong && setKaraokeOpen(true)}
+          className="flex items-center gap-2.5 flex-1 min-w-0 mr-2 cursor-pointer"
+        >
+          {currentSong ? (
+            <>
+              <div
+                className={`w-10 h-10 rounded-full overflow-hidden border border-white/20 shrink-0 shadow-sm ${
+                  isPlaying ? 'animate-spin-slow' : 'animation-paused'
+                }`}
+              >
+                <img
+                  src={currentSong.coverUrl}
+                  alt={currentSong.title}
+                  className="w-full h-full object-cover"
+                />
+              </div>
+              <div className="min-w-0 flex-1">
+                <div className="flex items-center gap-1.5">
+                  <h4 className="text-xs font-bold text-white truncate">
+                    {currentSong.title}
+                  </h4>
+                  {isPlaying && (
+                    <AudioVisualizer variant="mini" barCount={6} height={12} colorTheme="amber" />
+                  )}
+                </div>
+                <p className="text-[10px] text-[var(--text-secondary)] truncate">
+                  {currentSong.artist}
+                </p>
+              </div>
+            </>
+          ) : (
+            <div className="flex items-center gap-2 text-neutral-400">
+              <div className="w-9 h-9 rounded-full bg-white/5 border border-white/10 flex items-center justify-center">
+                <Play className="w-4 h-4 opacity-40" />
+              </div>
+              <div>
+                <p className="text-xs font-medium text-neutral-300">ITS Music</p>
+                <p className="text-[10px] text-neutral-500">Sẵn sàng phát nhạc</p>
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Right Controls */}
+        <div className="flex items-center gap-1.5 shrink-0">
+          {currentSong && (
+            <>
+              <button
+                type="button"
+                onClick={() => toggleFavorite(currentSong.id)}
+                className="p-1.5 text-neutral-400 hover:text-white rounded-full transition-colors cursor-pointer"
+                title={isFav ? 'Bỏ thích' : 'Yêu thích'}
+              >
+                <Heart
+                  className={`w-4 h-4 ${
+                    isFav ? 'fill-pink-500 text-pink-500' : 'text-neutral-400'
+                  }`}
+                />
+              </button>
+
+              {onOpenAddToPlaylist && (
+                <button
+                  type="button"
+                  onClick={() => onOpenAddToPlaylist(currentSong)}
+                  className="p-1.5 text-neutral-400 hover:text-white rounded-full transition-colors cursor-pointer"
+                  title="Thêm vào playlist"
+                >
+                  <FolderPlus className="w-4 h-4" />
+                </button>
+              )}
+            </>
+          )}
+
+          <button
+            type="button"
+            onClick={() => setKaraokeOpen(!isKaraokeOpen)}
+            className={`p-1.5 rounded-lg transition-colors cursor-pointer ${
+              isKaraokeOpen
+                ? 'bg-[var(--accent)] text-white'
+                : 'text-neutral-400 hover:text-white'
+            }`}
+            title="Lời bài hát / Karaoke"
+          >
+            <Mic2 className="w-4 h-4" />
+          </button>
+
+          <button
+            type="button"
+            onClick={prevSong}
+            disabled={!currentSong}
+            className="p-1 text-neutral-300 hover:text-white disabled:opacity-30 transition-colors cursor-pointer"
+            title="Bài trước"
+          >
+            <SkipBack className="w-4 h-4 fill-current" />
+          </button>
+
+          <button
+            type="button"
+            onClick={togglePlay}
+            disabled={!currentSong}
+            className="w-8 h-8 rounded-full bg-[var(--accent)] hover:opacity-90 disabled:opacity-40 text-white flex items-center justify-center shadow-md transition-transform active:scale-95 cursor-pointer"
+            title={isPlaying ? 'Tạm dừng' : 'Phát'}
+          >
+            {isPlaying ? (
+              <Pause className="w-4 h-4 fill-current" />
+            ) : (
+              <Play className="w-4 h-4 fill-current ml-0.5" />
+            )}
+          </button>
+
+          <button
+            type="button"
+            onClick={nextSong}
+            disabled={!currentSong}
+            className="p-1 text-neutral-300 hover:text-white disabled:opacity-30 transition-colors cursor-pointer"
+            title="Bài tiếp"
+          >
+            <SkipForward className="w-4 h-4 fill-current" />
+          </button>
+        </div>
+      </div>
+
+      {/* ========================================== */}
+      {/* 2. DESKTOP FULL PLAYER (Visible on >= md)  */}
+      {/* ========================================== */}
+      <div className="hidden md:flex h-22 px-6 items-center justify-between">
         {/* 1. LEFT ZONE: Current Song Info & Spinning Disc */}
         <div className="flex items-center gap-3 w-1/4 min-w-[200px] max-w-[320px]">
           {currentSong ? (
@@ -115,7 +237,7 @@ export const AudioPlayerBar: React.FC = () => {
                     {currentSong.title}
                   </h4>
                   {isPlaying && (
-                    <AudioVisualizer variant="mini" barCount={4} height={12} colorTheme="neon" />
+                    <AudioVisualizer variant="mini" barCount={8} height={14} colorTheme="neon" />
                   )}
                 </div>
                 <p className="text-xs text-[var(--text-secondary)] truncate">
@@ -123,18 +245,31 @@ export const AudioPlayerBar: React.FC = () => {
                 </p>
               </div>
 
-              <button
-                type="button"
-                onClick={() => toggleFavorite(currentSong.id)}
-                className="p-1.5 text-neutral-400 hover:text-white rounded-full transition-colors cursor-pointer shrink-0"
-                title={isFav ? 'Bỏ thích' : 'Yêu thích'}
-              >
-                <Heart
-                  className={`w-4 h-4 ${
-                    isFav ? 'fill-pink-500 text-pink-500' : 'text-neutral-400'
-                  }`}
-                />
-              </button>
+              <div className="flex items-center gap-1 shrink-0">
+                <button
+                  type="button"
+                  onClick={() => toggleFavorite(currentSong.id)}
+                  className="p-1.5 text-neutral-400 hover:text-white rounded-full transition-colors cursor-pointer"
+                  title={isFav ? 'Bỏ thích' : 'Yêu thích'}
+                >
+                  <Heart
+                    className={`w-4 h-4 ${
+                      isFav ? 'fill-pink-500 text-pink-500' : 'text-neutral-400'
+                    }`}
+                  />
+                </button>
+
+                {onOpenAddToPlaylist && (
+                  <button
+                    type="button"
+                    onClick={() => onOpenAddToPlaylist(currentSong)}
+                    className="p-1.5 text-neutral-400 hover:text-white rounded-full transition-colors cursor-pointer"
+                    title="Thêm vào playlist"
+                  >
+                    <FolderPlus className="w-4 h-4" />
+                  </button>
+                )}
+              </div>
             </>
         ) : (
           <div className="flex items-center gap-3 text-neutral-400">
@@ -287,20 +422,6 @@ export const AudioPlayerBar: React.FC = () => {
             </div>
           )}
         </div>
-
-        {/* Visualizer / Equalizer Button */}
-        <button
-          type="button"
-          onClick={() => setShowVisualizerBar(!showVisualizerBar)}
-          className={`p-2 rounded-xl transition-colors cursor-pointer ${
-            showVisualizerBar
-              ? 'bg-amber-400 text-black font-bold shadow-md'
-              : 'text-neutral-400 hover:text-white hover:bg-white/5'
-          }`}
-          title="Bật/tắt thanh sóng nhạc Equalizer"
-        >
-          <Waves className="w-4 h-4" />
-        </button>
 
         {/* Karaoke / Lyrics */}
         <button

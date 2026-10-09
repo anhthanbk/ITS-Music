@@ -1,4 +1,9 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+import sharp from 'sharp';
+import fs from 'fs';
+import path from 'path';
+
+// 1. Define high-resolution SVG artwork with Musical Note + "ITS Music" text below
+const svgContent = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
   <defs>
     <!-- Background Gradient -->
     <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
@@ -74,4 +79,62 @@
   <text x="256" y="430" text-anchor="middle" font-family="system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-weight="900" font-size="54" letter-spacing="3" fill="#ec4899" filter="url(#softGlow)">ITS Music</text>
   <!-- Sharp text overlay -->
   <text x="256" y="430" text-anchor="middle" font-family="system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-weight="900" font-size="54" letter-spacing="3" fill="url(#textGrad)">ITS Music</text>
-</svg>
+</svg>`;
+
+// Safe-zone padded version for Android Maskable Icon (15% padding = 512 total size)
+const maskableSvgContent = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <rect width="512" height="512" fill="#090414"/>
+  <g transform="translate(61, 61) scale(0.76)">
+    ${svgContent.replace('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">', '').replace('</svg>', '')}
+  </g>
+</svg>`;
+
+async function generate() {
+  const publicDir = path.resolve('public');
+  if (!fs.existsSync(publicDir)) {
+    fs.mkdirSync(publicDir, { recursive: true });
+  }
+
+  // Write SVGs
+  fs.writeFileSync(path.join(publicDir, 'icon.svg'), svgContent, 'utf-8');
+  fs.writeFileSync(path.join(publicDir, 'favicon.svg'), svgContent, 'utf-8');
+  fs.writeFileSync(path.join(publicDir, 'logo.svg'), svgContent, 'utf-8');
+
+  // Convert SVG to PNGs
+  const svgBuffer = Buffer.from(svgContent);
+  const maskableBuffer = Buffer.from(maskableSvgContent);
+
+  // 1. apple-touch-icon.png (180x180) for iOS Safari Add to Home Screen
+  await sharp(svgBuffer)
+    .resize(180, 180)
+    .png()
+    .toFile(path.join(publicDir, 'apple-touch-icon.png'));
+
+  // 2. pwa-192x192.png (192x192) for Android / Chrome PWA
+  await sharp(svgBuffer)
+    .resize(192, 192)
+    .png()
+    .toFile(path.join(publicDir, 'pwa-192x192.png'));
+
+  // 3. pwa-512x512.png (512x512) for Android Splash & Web
+  await sharp(svgBuffer)
+    .resize(512, 512)
+    .png()
+    .toFile(path.join(publicDir, 'pwa-512x512.png'));
+
+  // 4. pwa-maskable-512x512.png (512x512) for Android Adaptive Icon
+  await sharp(maskableBuffer)
+    .resize(512, 512)
+    .png()
+    .toFile(path.join(publicDir, 'pwa-maskable-512x512.png'));
+
+  // 5. favicon.png (64x64) for Browser Favicon
+  await sharp(svgBuffer)
+    .resize(64, 64)
+    .png()
+    .toFile(path.join(publicDir, 'favicon.png'));
+
+  console.log('Successfully generated new Musical Note ITS Music icons & favicons!');
+}
+
+generate().catch(console.error);

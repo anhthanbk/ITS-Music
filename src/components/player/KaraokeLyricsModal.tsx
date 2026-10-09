@@ -182,7 +182,7 @@ export const KaraokeLyricsModal: React.FC = () => {
   if (!isKaraokeOpen || !currentSong) return null;
 
   return (
-    <div className="fixed inset-0 z-50 bg-[#080811] flex flex-col animate-in fade-in duration-200 select-none overflow-hidden">
+    <div className="fixed inset-0 z-50 bg-[#080811] flex flex-col animate-in fade-in duration-200 select-none overflow-hidden h-screen w-screen">
       {/* Background dynamic ambient glow from album cover */}
       <div
         className="absolute inset-0 opacity-25 filter blur-[100px] pointer-events-none scale-125 transform transition-all duration-700"
@@ -195,35 +195,57 @@ export const KaraokeLyricsModal: React.FC = () => {
       <div className="absolute inset-0 bg-radial from-transparent via-[#080811]/70 to-[#080811] pointer-events-none" />
 
       {/* TOP HEADER BAR */}
-      <header className="relative z-20 flex items-center justify-between px-5 md:px-8 py-4 border-b border-white/10 bg-black/30 backdrop-blur-md">
-        {/* Left: Song Info */}
-        <div className="flex items-center gap-3.5 min-w-0">
-          <div className="w-11 h-11 rounded-2xl overflow-hidden border border-white/20 shadow-md shrink-0">
-            <img
-              src={currentSong.coverUrl}
-              alt={currentSong.title}
-              className="w-full h-full object-cover"
-            />
+      <header className="relative z-20 flex flex-col sm:flex-row items-center justify-between px-3 sm:px-6 py-2.5 sm:py-4 border-b border-white/10 bg-black/40 backdrop-blur-md gap-2.5">
+        <div className="flex items-center justify-between w-full sm:w-auto gap-3">
+          {/* Left: Song Info */}
+          <div className="flex items-center gap-2.5 min-w-0 flex-1 sm:flex-initial">
+            <div className="w-9 h-9 sm:w-11 sm:h-11 rounded-xl sm:rounded-2xl overflow-hidden border border-white/20 shadow-md shrink-0">
+              <img
+                src={currentSong.coverUrl}
+                alt={currentSong.title}
+                className="w-full h-full object-cover"
+              />
+            </div>
+            <div className="min-w-0 flex-1">
+              <h2 className="text-xs sm:text-base font-extrabold text-white tracking-tight truncate flex items-center gap-2">
+                {currentSong.title}
+                {currentSong.album && (
+                  <span className="hidden md:inline text-[10px] font-medium px-2 py-0.5 rounded-full bg-purple-500/20 text-purple-300 border border-purple-500/30">
+                    {currentSong.album}
+                  </span>
+                )}
+              </h2>
+              <p className="text-[11px] sm:text-xs text-neutral-400 truncate mt-0.5">{currentSong.artist}</p>
+            </div>
           </div>
-          <div className="min-w-0">
-            <h2 className="text-base font-extrabold text-white tracking-tight truncate flex items-center gap-2">
-              {currentSong.title}
-              {currentSong.album && (
-                <span className="hidden sm:inline text-[10px] font-medium px-2 py-0.5 rounded-full bg-purple-500/20 text-purple-300 border border-purple-500/30">
-                  {currentSong.album}
-                </span>
-              )}
-            </h2>
-            <p className="text-xs text-neutral-400 truncate mt-0.5">{currentSong.artist}</p>
+
+          {/* Right Header Controls on Mobile (< sm) */}
+          <div className="flex items-center gap-1.5 sm:hidden shrink-0">
+            <button
+              type="button"
+              onClick={openManualEditor}
+              className="p-2 rounded-xl bg-purple-500/20 text-purple-300 border border-purple-500/30 text-xs cursor-pointer"
+              title="Sửa lời thủ công"
+            >
+              <Edit3 className="w-4 h-4 text-purple-400" />
+            </button>
+            <button
+              type="button"
+              onClick={() => setKaraokeOpen(false)}
+              className="p-2 rounded-xl bg-white/10 text-white cursor-pointer"
+              title="Đóng Karaoke"
+            >
+              <X className="w-4 h-4" />
+            </button>
           </div>
         </div>
 
         {/* Center: Mode Tabs (Karaoke Stage vs Scrolling Lyrics) */}
-        <div className="flex items-center gap-1.5 p-1 rounded-2xl bg-white/5 border border-white/10">
+        <div className="flex items-center justify-center gap-1 p-1 rounded-xl sm:rounded-2xl bg-white/5 border border-white/10 w-full sm:w-auto">
           <button
             type="button"
             onClick={() => setViewMode('karaoke')}
-            className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+            className={`flex-1 sm:flex-initial flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg sm:rounded-xl text-xs font-bold transition-all cursor-pointer ${
               viewMode === 'karaoke'
                 ? 'bg-gradient-to-r from-purple-600 to-pink-600 text-white shadow-lg shadow-purple-900/40'
                 : 'text-neutral-400 hover:text-white'
@@ -236,7 +258,7 @@ export const KaraokeLyricsModal: React.FC = () => {
           <button
             type="button"
             onClick={() => setViewMode('scrolling')}
-            className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+            className={`flex-1 sm:flex-initial flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg sm:rounded-xl text-xs font-bold transition-all cursor-pointer ${
               viewMode === 'scrolling'
                 ? 'bg-[var(--accent)] text-white shadow-lg'
                 : 'text-neutral-400 hover:text-white'
@@ -247,13 +269,13 @@ export const KaraokeLyricsModal: React.FC = () => {
           </button>
         </div>
 
-        {/* Right: Manual Lyric Editor & Utility buttons */}
-        <div className="flex items-center gap-2">
+        {/* Right: Desktop Manual Lyric Editor & Utility buttons */}
+        <div className="hidden sm:flex items-center gap-2">
           {/* Manual Lyrics Edit Button */}
           <button
             type="button"
             onClick={openManualEditor}
-            className="hidden sm:flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-purple-500/20 hover:bg-purple-500/30 text-purple-300 border border-purple-500/30 text-xs font-bold transition-all shadow-sm cursor-pointer"
+            className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-purple-500/20 hover:bg-purple-500/30 text-purple-300 border border-purple-500/30 text-xs font-bold transition-all shadow-sm cursor-pointer"
             title="Thêm hoặc chỉnh sửa lời bài hát thủ công (Định dạng LRC)"
           >
             <Edit3 className="w-3.5 h-3.5 text-purple-400" />
@@ -284,7 +306,7 @@ export const KaraokeLyricsModal: React.FC = () => {
 
       {/* Success Notification Alert */}
       {saveSuccessMsg && (
-        <div className="relative z-30 mx-6 mt-3 p-3 rounded-2xl bg-emerald-500/20 border border-emerald-500/30 text-emerald-200 text-xs flex items-center justify-between gap-3 animate-in fade-in slide-in-from-top-2">
+        <div className="relative z-30 mx-4 sm:mx-6 mt-2 sm:mt-3 p-2.5 sm:p-3 rounded-xl sm:rounded-2xl bg-emerald-500/20 border border-emerald-500/30 text-emerald-200 text-xs flex items-center justify-between gap-3 animate-in fade-in slide-in-from-top-2">
           <div className="flex items-center gap-2">
             <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
             <span>{saveSuccessMsg}</span>
@@ -300,14 +322,14 @@ export const KaraokeLyricsModal: React.FC = () => {
       )}
 
       {/* MAIN VIEW AREA */}
-      <main className="relative z-10 flex-1 flex flex-col justify-center items-center overflow-hidden px-4 md:px-12 py-6">
+      <main className="relative z-10 flex-1 flex flex-col justify-center items-center overflow-y-auto px-3 sm:px-6 md:px-12 py-3 sm:py-6">
         {/* MANUAL LYRIC EDITOR MODAL OR EMPTY STATE */}
         {isEditingLyrics || lyrics.length === 0 ? (
-          <div className="w-full max-w-xl mx-auto p-6 rounded-3xl bg-black/60 border border-purple-500/30 backdrop-blur-2xl shadow-2xl space-y-4 animate-in fade-in zoom-in-95">
-            <div className="flex items-center justify-between border-b border-white/10 pb-3">
+          <div className="w-full max-w-xl mx-auto p-4 sm:p-6 rounded-2xl sm:rounded-3xl bg-black/70 border border-purple-500/30 backdrop-blur-2xl shadow-2xl space-y-3 sm:space-y-4 animate-in fade-in zoom-in-95 my-auto">
+            <div className="flex items-center justify-between border-b border-white/10 pb-2.5">
               <div className="flex items-center gap-2">
-                <Edit3 className="w-5 h-5 text-purple-400" />
-                <h3 className="text-base font-extrabold text-white">
+                <Edit3 className="w-4 h-4 sm:w-5 sm:h-5 text-purple-400" />
+                <h3 className="text-sm sm:text-base font-extrabold text-white">
                   {lyrics.length === 0 ? 'Nhập Lời Bài Hát Thủ Công' : 'Chỉnh Sửa Lời Bài Hát'}
                 </h3>
               </div>
@@ -327,15 +349,15 @@ export const KaraokeLyricsModal: React.FC = () => {
             </p>
 
             <textarea
-              rows={8}
+              rows={6}
               value={manualLrcInput}
               onChange={(e) => setManualLrcInput(e.target.value)}
               placeholder="[00:00] Đoạn mở đầu...&#10;[00:15] Câu hát đồng bộ thứ nhất...&#10;[00:30] Câu hát đồng bộ thứ hai..."
-              className="w-full p-3.5 text-xs font-mono bg-white/5 border border-white/10 focus:border-purple-400 rounded-2xl text-white outline-none resize-none leading-relaxed"
+              className="w-full p-3 text-xs font-mono bg-white/5 border border-white/10 focus:border-purple-400 rounded-xl sm:rounded-2xl text-white outline-none resize-none leading-relaxed"
             />
 
-            <div className="flex items-center justify-between pt-2">
-              <span className="text-[11px] text-neutral-400 font-mono">
+            <div className="flex items-center justify-between pt-1">
+              <span className="text-[10px] sm:text-[11px] text-neutral-400 font-mono">
                 Cú pháp: [MM:SS] Nội dung lời câu hát
               </span>
               <div className="flex items-center gap-2">
@@ -343,7 +365,7 @@ export const KaraokeLyricsModal: React.FC = () => {
                   <button
                     type="button"
                     onClick={() => setIsEditingLyrics(false)}
-                    className="px-4 py-2 rounded-xl text-xs font-medium text-neutral-300 hover:bg-white/10"
+                    className="px-3 py-1.5 rounded-xl text-xs font-medium text-neutral-300 hover:bg-white/10"
                   >
                     Hủy
                   </button>
@@ -351,7 +373,7 @@ export const KaraokeLyricsModal: React.FC = () => {
                 <button
                   type="button"
                   onClick={handleSaveManualLyrics}
-                  className="flex items-center gap-1.5 px-5 py-2 rounded-xl bg-gradient-to-r from-purple-600 to-pink-600 hover:opacity-90 text-white font-bold text-xs shadow-lg shadow-purple-900/40 transition-transform active:scale-95 cursor-pointer"
+                  className="flex items-center gap-1.5 px-4 py-1.5 sm:px-5 sm:py-2 rounded-xl bg-gradient-to-r from-purple-600 to-pink-600 hover:opacity-90 text-white font-bold text-xs shadow-lg shadow-purple-900/40 transition-transform active:scale-95 cursor-pointer"
                 >
                   <Save className="w-3.5 h-3.5" />
                   <span>Lưu Lời Bài Hát</span>
@@ -361,12 +383,12 @@ export const KaraokeLyricsModal: React.FC = () => {
           </div>
         ) : viewMode === 'karaoke' ? (
           /* CASE 2: STAGE KARAOKE MODE (Zing MP3 / Pro Karaoke Stage Style) */
-          <div className="w-full max-w-5xl flex flex-col items-center justify-center text-center space-y-12">
+          <div className="w-full max-w-5xl my-auto flex flex-col items-center justify-center text-center space-y-4 sm:space-y-8 md:space-y-10 py-2">
             {/* Spinning disc avatar with glowing ring */}
             <div className="flex items-center justify-center">
               <div className="relative group">
                 <div
-                  className={`w-36 h-36 sm:w-44 sm:h-44 rounded-full overflow-hidden border-4 border-amber-400/30 shadow-[0_0_50px_rgba(251,191,36,0.3)] transition-all ${
+                  className={`w-28 h-28 sm:w-36 sm:h-36 md:w-44 md:h-44 rounded-full overflow-hidden border-4 border-amber-400/30 shadow-[0_0_40px_rgba(251,191,36,0.3)] transition-all ${
                     isPlaying ? 'animate-spin-slow' : 'animation-paused'
                   }`}
                 >
@@ -377,26 +399,26 @@ export const KaraokeLyricsModal: React.FC = () => {
                   />
                 </div>
                 {/* Vinyl Center Hole */}
-                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-black/90 border-2 border-amber-300 flex items-center justify-center shadow-md">
-                  <div className="w-2.5 h-2.5 rounded-full bg-amber-400" />
+                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-6 h-6 sm:w-8 sm:h-8 rounded-full bg-black/90 border-2 border-amber-300 flex items-center justify-center shadow-md">
+                  <div className="w-2 h-2 sm:w-2.5 sm:h-2.5 rounded-full bg-amber-400" />
                 </div>
 
                 {/* Microphone Badge */}
-                <div className="absolute -bottom-2 right-1/2 translate-x-1/2 px-3 py-1 rounded-full bg-black/80 border border-amber-400/50 text-[10px] font-black uppercase text-amber-300 tracking-widest flex items-center gap-1.5 shadow-lg">
-                  <Mic2 className="w-3 h-3 text-amber-400 animate-pulse" />
+                <div className="absolute -bottom-2 right-1/2 translate-x-1/2 px-2.5 py-0.5 sm:px-3 sm:py-1 rounded-full bg-black/80 border border-amber-400/50 text-[9px] sm:text-[10px] font-black uppercase text-amber-300 tracking-widest flex items-center gap-1 sm:gap-1.5 shadow-lg whitespace-nowrap">
+                  <Mic2 className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-amber-400 animate-pulse" />
                   <span>KARAOKE LIVE</span>
                 </div>
               </div>
             </div>
 
             {/* Rhythm Countdown Beat Pulse Dots */}
-            <div className="flex items-center justify-center gap-3">
+            <div className="flex items-center justify-center gap-2 sm:gap-3">
               {[0, 1, 2, 3].map((dot) => {
                 const isLit = lineProgressRatio * 4 >= dot;
                 return (
                   <span
                     key={dot}
-                    className={`w-3 h-3 rounded-full transition-all duration-150 ${
+                    className={`w-2.5 h-2.5 sm:w-3 sm:h-3 rounded-full transition-all duration-150 ${
                       isLit
                         ? 'bg-amber-400 scale-125 shadow-[0_0_12px_rgba(251,191,36,0.8)]'
                         : 'bg-white/20 scale-90'
@@ -407,45 +429,51 @@ export const KaraokeLyricsModal: React.FC = () => {
             </div>
 
             {/* 2-LINE KARAOKE DISPLAY */}
-            <div className="w-full space-y-6 px-4 min-h-[160px] flex flex-col justify-center items-center">
-              {/* LINE 1: ACTIVE CURRENT LYRIC */}
+            <div className="w-full space-y-3 sm:space-y-5 px-2 sm:px-4 min-h-[110px] sm:min-h-[150px] flex flex-col justify-center items-center">
+              {/* LINE 1: ACTIVE CURRENT LYRIC WITH WORD-BY-WORD PROGRESSIVE FILL */}
               {currentLyric ? (
-                <div className="relative inline-block max-w-4xl">
-                  {/* Glowing active lyrics line */}
-                  <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-black tracking-tight leading-tight transition-all duration-200 text-transparent bg-clip-text bg-gradient-to-r from-amber-300 via-yellow-200 to-amber-400 drop-shadow-[0_0_35px_rgba(251,191,36,0.6)]">
+                <div className="relative inline-block max-w-4xl px-2">
+                  <h1
+                    className="text-xl sm:text-3xl md:text-5xl lg:text-6xl font-black tracking-tight leading-tight transition-all duration-75 select-none"
+                    style={{
+                      backgroundImage: `linear-gradient(to right, #fabb05 0%, #facc15 ${lineProgressRatio * 100}%, rgba(255, 255, 255, 0.35) ${lineProgressRatio * 100}%, rgba(255, 255, 255, 0.35) 100%)`,
+                      WebkitBackgroundClip: 'text',
+                      WebkitTextFillColor: 'transparent',
+                      filter: 'drop-shadow(0 0 18px rgba(251, 191, 36, 0.65))',
+                    }}
+                  >
                     {currentLyric.text}
                   </h1>
 
                   {/* Singing progress line underneath */}
-                  <div className="w-full h-1.5 bg-white/10 rounded-full mt-4 overflow-hidden max-w-md mx-auto">
+                  <div className="w-full h-1 sm:h-1.5 bg-white/10 rounded-full mt-2 sm:mt-3.5 overflow-hidden max-w-xs sm:max-w-md mx-auto">
                     <div
-                      className="h-full bg-gradient-to-r from-amber-400 to-yellow-300 rounded-full transition-all duration-100 ease-linear shadow-[0_0_10px_rgba(251,191,36,0.8)]"
+                      className="h-full bg-gradient-to-r from-amber-400 via-yellow-300 to-amber-200 rounded-full transition-all duration-100 ease-linear shadow-[0_0_12px_rgba(251,191,36,0.9)]"
                       style={{ width: `${lineProgressRatio * 100}%` }}
                     />
                   </div>
                 </div>
               ) : (
-                <div className="text-2xl sm:text-3xl font-extrabold text-neutral-400 italic animate-pulse">
+                <div className="text-lg sm:text-2xl md:text-3xl font-extrabold text-neutral-400/70 italic animate-pulse">
                   (Chuẩn bị vào bài hát...)
                 </div>
               )}
 
               {/* LINE 2: PREVIEW NEXT LYRIC */}
               {nextLyric && (
-                <p className="text-lg sm:text-2xl md:text-3xl font-bold text-neutral-400/80 max-w-3xl transition-opacity duration-300">
+                <p className="text-sm sm:text-xl md:text-2xl font-bold text-white/50 max-w-2xl px-2 transition-opacity duration-300">
                   {nextLyric.text}
                 </p>
               )}
             </div>
 
-            {/* Real Audio Visualizer Equalizer Frequency Bars */}
-            <div className="w-full max-w-2xl mx-auto px-4 pt-2">
+            {/* Minimalist Audio Frequency Equalizer */}
+            <div className="w-full max-w-sm sm:max-w-md mx-auto px-2 pt-2 pb-1 flex justify-center">
               <AudioVisualizer
-                variant="stage"
-                barCount={38}
-                height={70}
+                variant="mini"
+                barCount={22}
+                height={22}
                 colorTheme={vizTheme}
-                showPeaks={true}
               />
             </div>
           </div>
@@ -453,7 +481,7 @@ export const KaraokeLyricsModal: React.FC = () => {
           /* CASE 3: SCROLLING LYRICS MODE */
           <div
             ref={containerRef}
-            className="w-full max-w-4xl flex-1 flex flex-col justify-start items-center overflow-y-auto px-4 py-16 scroll-smooth space-y-6 text-center select-none"
+            className="w-full max-w-3xl flex-1 flex flex-col justify-start items-center overflow-y-auto px-2 sm:px-4 py-8 sm:py-16 scroll-smooth space-y-4 sm:space-y-6 text-center select-none"
           >
             {lyrics.map((line, idx) => {
               const isActive = idx === activeIndex;
@@ -464,12 +492,12 @@ export const KaraokeLyricsModal: React.FC = () => {
                   key={idx}
                   ref={isActive ? activeLineRef : null}
                   onClick={() => seek(line.time)}
-                  className={`cursor-pointer transition-all duration-300 py-2 px-6 rounded-2xl ${
+                  className={`cursor-pointer transition-all duration-300 py-1.5 sm:py-2 px-4 sm:px-6 rounded-2xl ${
                     isActive
                       ? `${fontSizeClass} font-black text-amber-300 scale-105 drop-shadow-[0_0_20px_rgba(251,191,36,0.6)] bg-white/5 border border-amber-400/30`
                       : isPassed
-                      ? 'text-lg md:text-xl font-medium text-neutral-500 hover:text-neutral-300'
-                      : 'text-lg md:text-xl font-medium text-neutral-400 hover:text-white'
+                      ? 'text-base sm:text-lg md:text-xl font-medium text-neutral-500 hover:text-neutral-300'
+                      : 'text-base sm:text-lg md:text-xl font-medium text-neutral-400 hover:text-white'
                   }`}
                 >
                   {line.text}
@@ -481,10 +509,10 @@ export const KaraokeLyricsModal: React.FC = () => {
       </main>
 
       {/* BOTTOM CONTROL DOCK */}
-      <footer className="relative z-20 px-6 py-4 border-t border-white/10 bg-black/60 backdrop-blur-xl flex flex-col gap-3">
+      <footer className="relative z-20 px-3 sm:px-6 py-2.5 sm:py-4 border-t border-white/10 bg-black/70 backdrop-blur-xl flex flex-col gap-2 sm:gap-3">
         {/* Progress Seeker Bar */}
-        <div className="w-full max-w-4xl mx-auto flex items-center gap-3">
-          <span className="text-xs font-mono text-neutral-400 w-10 text-right tabular-nums">
+        <div className="w-full max-w-4xl mx-auto flex items-center gap-2 sm:gap-3">
+          <span className="text-[10px] sm:text-xs font-mono text-neutral-400 w-8 sm:w-10 text-right tabular-nums">
             {formatSeconds(currentTime)}
           </span>
 
@@ -502,21 +530,21 @@ export const KaraokeLyricsModal: React.FC = () => {
             />
           </div>
 
-          <span className="text-xs font-mono text-neutral-400 w-10 tabular-nums">
+          <span className="text-[10px] sm:text-xs font-mono text-neutral-400 w-8 sm:w-10 tabular-nums">
             {formatSeconds(songDuration)}
           </span>
         </div>
 
         {/* Playback & Volume Control Buttons */}
-        <div className="w-full max-w-4xl mx-auto flex items-center justify-between">
+        <div className="w-full max-w-4xl mx-auto flex items-center justify-between gap-2">
           {/* Left: Font Size or Visualizer Theme */}
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1 shrink-0">
             {viewMode === 'scrolling' ? (
-              <div className="flex items-center gap-1 bg-white/5 border border-white/10 rounded-xl p-1">
+              <div className="flex items-center gap-0.5 sm:gap-1 bg-white/5 border border-white/10 rounded-lg sm:rounded-xl p-0.5 sm:p-1">
                 <button
                   type="button"
                   onClick={() => setFontSizeClass('text-xl')}
-                  className={`px-2 py-0.5 text-xs rounded-lg font-bold ${
+                  className={`px-1.5 py-0.5 text-[10px] sm:text-xs rounded font-bold ${
                     fontSizeClass === 'text-xl' ? 'bg-white/20 text-white' : 'text-neutral-400'
                   }`}
                 >
@@ -525,7 +553,7 @@ export const KaraokeLyricsModal: React.FC = () => {
                 <button
                   type="button"
                   onClick={() => setFontSizeClass('text-2xl')}
-                  className={`px-2 py-0.5 text-xs rounded-lg font-bold ${
+                  className={`px-1.5 py-0.5 text-[10px] sm:text-xs rounded font-bold ${
                     fontSizeClass === 'text-2xl' ? 'bg-white/20 text-white' : 'text-neutral-400'
                   }`}
                 >
@@ -534,7 +562,7 @@ export const KaraokeLyricsModal: React.FC = () => {
                 <button
                   type="button"
                   onClick={() => setFontSizeClass('text-3xl')}
-                  className={`px-2 py-0.5 text-xs rounded-lg font-bold ${
+                  className={`px-1.5 py-0.5 text-[10px] sm:text-xs rounded font-bold ${
                     fontSizeClass === 'text-3xl' ? 'bg-white/20 text-white' : 'text-neutral-400'
                   }`}
                 >
@@ -542,14 +570,14 @@ export const KaraokeLyricsModal: React.FC = () => {
                 </button>
               </div>
             ) : (
-              <div className="flex items-center gap-1.5 bg-white/5 border border-white/10 rounded-xl p-1 text-[10px]">
-                <span className="text-neutral-500 pl-1 pr-0.5 font-medium">Sóng nhạc:</span>
+              <div className="flex items-center gap-1 bg-white/5 border border-white/10 rounded-lg sm:rounded-xl p-0.5 sm:p-1 text-[10px]">
+                <span className="hidden md:inline text-neutral-500 pl-1 pr-0.5 font-medium">Sóng:</span>
                 {(['neon', 'amber', 'purple', 'cyan'] as const).map((t) => (
                   <button
                     key={t}
                     type="button"
                     onClick={() => setVizTheme(t)}
-                    className={`px-2 py-0.5 rounded-lg capitalize font-bold transition-all cursor-pointer ${
+                    className={`px-1.5 sm:px-2 py-0.5 rounded capitalize font-bold text-[9px] sm:text-[10px] transition-all cursor-pointer ${
                       vizTheme === t ? 'bg-white/20 text-white shadow-sm' : 'text-neutral-400 hover:text-white'
                     }`}
                   >
@@ -561,45 +589,45 @@ export const KaraokeLyricsModal: React.FC = () => {
           </div>
 
           {/* Center: Play, Next, Prev */}
-          <div className="flex items-center gap-5">
+          <div className="flex items-center gap-3 sm:gap-5 shrink-0">
             <button
               type="button"
               onClick={prevSong}
-              className="p-2 text-neutral-400 hover:text-white transition-colors cursor-pointer"
+              className="p-1.5 sm:p-2 text-neutral-400 hover:text-white transition-colors cursor-pointer"
               title="Bài trước đó"
             >
-              <SkipBack className="w-5 h-5 fill-current" />
+              <SkipBack className="w-4 h-4 sm:w-5 sm:h-5 fill-current" />
             </button>
 
             <button
               type="button"
               onClick={togglePlay}
-              className="w-13 h-13 rounded-full bg-gradient-to-r from-amber-400 to-pink-500 hover:opacity-90 text-white flex items-center justify-center shadow-xl shadow-amber-500/30 transition-transform active:scale-95 cursor-pointer"
+              className="w-10 h-10 sm:w-13 sm:h-13 rounded-full bg-gradient-to-r from-amber-400 to-pink-500 hover:opacity-90 text-white flex items-center justify-center shadow-xl shadow-amber-500/30 transition-transform active:scale-95 cursor-pointer"
               title={isPlaying ? 'Tạm dừng' : 'Phát'}
             >
               {isPlaying ? (
-                <Pause className="w-6 h-6 fill-current" />
+                <Pause className="w-5 h-5 sm:w-6 sm:h-6 fill-current" />
               ) : (
-                <Play className="w-6 h-6 fill-current ml-0.5" />
+                <Play className="w-5 h-5 sm:w-6 sm:h-6 fill-current ml-0.5" />
               )}
             </button>
 
             <button
               type="button"
               onClick={nextSong}
-              className="p-2 text-neutral-400 hover:text-white transition-colors cursor-pointer"
+              className="p-1.5 sm:p-2 text-neutral-400 hover:text-white transition-colors cursor-pointer"
               title="Bài tiếp theo"
             >
-              <SkipForward className="w-5 h-5 fill-current" />
+              <SkipForward className="w-4 h-4 sm:w-5 sm:h-5 fill-current" />
             </button>
           </div>
 
           {/* Right: Volume */}
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1.5 shrink-0">
             <button
               type="button"
               onClick={toggleMute}
-              className="p-1.5 text-neutral-400 hover:text-white transition-colors cursor-pointer"
+              className="p-1 sm:p-1.5 text-neutral-400 hover:text-white transition-colors cursor-pointer"
             >
               {isMuted || volume === 0 ? (
                 <VolumeX className="w-4 h-4 text-red-400" />
@@ -615,7 +643,7 @@ export const KaraokeLyricsModal: React.FC = () => {
               step={0.02}
               value={isMuted ? 0 : volume}
               onChange={(e) => setVolume(parseFloat(e.target.value))}
-              className="w-20 sm:w-24 h-1 bg-white/20 rounded-lg appearance-none cursor-pointer"
+              className="w-12 sm:w-20 md:w-24 h-1 bg-white/20 rounded-lg appearance-none cursor-pointer"
               style={{
                 background: `linear-gradient(to right, #f59e0b ${
                   (isMuted ? 0 : volume) * 100
