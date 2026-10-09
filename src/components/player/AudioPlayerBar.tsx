@@ -19,6 +19,7 @@ import {
 import { usePlayerStore } from '../../store/usePlayerStore';
 import { useMusicStore } from '../../store/useMusicStore';
 import { AudioQuality, Song } from '../../types/music';
+import { ScrollingText } from '../common/ScrollingText';
 
 interface AudioPlayerBarProps {
   onOpenAddToPlaylist?: (song: Song) => void;
@@ -101,9 +102,10 @@ export const AudioPlayerBar: React.FC<AudioPlayerBarProps> = ({ onOpenAddToPlayl
                 />
               </div>
               <div className="min-w-0 flex-1">
-                <h4 className="text-xs font-bold text-white truncate">
-                  {currentSong.title}
-                </h4>
+                <ScrollingText
+                  text={currentSong.title}
+                  className="text-xs font-bold text-white leading-tight"
+                />
                 <p className="text-[10px] text-[var(--text-secondary)] truncate">
                   {currentSong.artist}
                 </p>
@@ -226,9 +228,10 @@ export const AudioPlayerBar: React.FC<AudioPlayerBarProps> = ({ onOpenAddToPlayl
               </div>
 
               <div className="min-w-0 flex-1">
-                <h4 className="text-sm font-semibold text-white truncate hover:text-[var(--accent)] cursor-pointer transition-colors">
-                  {currentSong.title}
-                </h4>
+                <ScrollingText
+                  text={currentSong.title}
+                  className="text-sm font-semibold text-white hover:text-[var(--accent)] cursor-pointer transition-colors"
+                />
                 <p className="text-xs text-[var(--text-secondary)] truncate">
                   {currentSong.artist}
                 </p>

@@ -16,6 +16,7 @@ import {
 import { useMusicStore } from '../../store/useMusicStore';
 import { usePlayerStore } from '../../store/usePlayerStore';
 import { Song, Playlist } from '../../types/music';
+import { ScrollingText } from '../common/ScrollingText';
 
 interface DiscoverViewProps {
   onNavigateToChart: () => void;
@@ -270,9 +271,10 @@ export const DiscoverView: React.FC<DiscoverViewProps> = ({
                   </div>
 
                   <div className="flex-1 min-w-0 pr-2">
-                    <h4 className="text-[0.8rem] font-bold text-white truncate group-hover:text-[var(--accent)]">
-                      {song.title}
-                    </h4>
+                    <ScrollingText
+                      text={song.title}
+                      className="text-[0.8rem] font-bold text-white group-hover:text-[var(--accent)]"
+                    />
                     <p className="text-[0.75rem] text-neutral-400 truncate">
                       {song.artist}
                     </p>

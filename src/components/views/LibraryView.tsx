@@ -18,6 +18,7 @@ import { usePlayerStore } from '../../store/usePlayerStore';
 import { useAuthStore } from '../../store/useAuthStore';
 import { Playlist, Song } from '../../types/music';
 import { ConfirmModal } from '../common/ConfirmModal';
+import { ScrollingText } from '../common/ScrollingText';
 
 interface LibraryViewProps {
   onOpenCreatePlaylist: () => void;
@@ -212,13 +213,12 @@ export const LibraryView: React.FC<LibraryViewProps> = ({
                     </div>
 
                     <div className="flex-1 min-w-0 pr-2">
-                      <h4
-                        className={`text-[0.8rem] sm:text-sm font-bold leading-snug truncate ${
+                      <ScrollingText
+                        text={song.title}
+                        className={`text-[0.8rem] sm:text-sm font-bold leading-snug ${
                           isCurrent ? 'text-[var(--accent)]' : 'text-white'
                         }`}
-                      >
-                        {song.title}
-                      </h4>
+                      />
                       <p className="text-[0.75rem] sm:text-xs text-[var(--text-secondary)] mt-0.5 font-medium leading-tight truncate">
                         {song.artist}
                       </p>
@@ -404,9 +404,10 @@ export const LibraryView: React.FC<LibraryViewProps> = ({
                       </div>
 
                       <div className="min-w-0 flex-1">
-                        <h4 className="text-[0.8rem] sm:text-sm font-bold text-white truncate">
-                          {song.title}
-                        </h4>
+                        <ScrollingText
+                          text={song.title}
+                          className="text-[0.8rem] sm:text-sm font-bold text-white"
+                        />
                         <div className="flex items-center gap-2 text-[0.75rem] text-[var(--text-secondary)] mt-0.5">
                           <span className="truncate">{song.artist}</span>
                           <span>•</span>

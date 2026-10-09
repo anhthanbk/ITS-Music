@@ -98,6 +98,26 @@
   animation-play-state: paused !important;
 }
 
+/* Horizontal scrolling marquee text animation for long song titles */
+@keyframes marquee {
+  0% {
+    transform: translateX(0%);
+  }
+  100% {
+    transform: translateX(-50%);
+  }
+}
+
+.animate-marquee {
+  display: inline-flex;
+  animation: marquee 10s linear infinite;
+  will-change: transform;
+}
+
+.animate-marquee:hover {
+  animation-play-state: paused;
+}
+
 /* Range input styling */
 input[type='range'] {
   accent-color: var(--accent);

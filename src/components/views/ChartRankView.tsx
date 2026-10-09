@@ -9,6 +9,7 @@ import {
 import { useMusicStore } from '../../store/useMusicStore';
 import { usePlayerStore } from '../../store/usePlayerStore';
 import { Song } from '../../types/music';
+import { ScrollingText } from '../common/ScrollingText';
 
 interface ChartRankViewProps {
   onOpenAddToPlaylist?: (song: Song) => void;
@@ -137,13 +138,12 @@ export const ChartRankView: React.FC<ChartRankViewProps> = ({ onOpenAddToPlaylis
 
                 {/* Song Info - Expanded title container with ~0.8rem font size */}
                 <div className="flex-1 min-w-0 pr-2">
-                  <h4
-                    className={`text-[0.8rem] sm:text-sm font-bold leading-snug truncate ${
+                  <ScrollingText
+                    text={song.title}
+                    className={`text-[0.8rem] sm:text-sm font-bold leading-snug ${
                       isCurrent ? 'text-[var(--accent)]' : 'text-white'
                     }`}
-                  >
-                    {song.title}
-                  </h4>
+                  />
                   <p className="text-[0.75rem] sm:text-xs text-[var(--text-secondary)] mt-0.5 font-medium leading-tight truncate">
                     {song.artist}
                   </p>
